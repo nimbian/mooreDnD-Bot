@@ -1,0 +1,8 @@
+*.yml
+__pycache__/
+virt/
+*.swp
+images/gens/
+*.sql
+*.sh
+shop.py
