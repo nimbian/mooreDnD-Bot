@@ -118,7 +118,7 @@ async def ptrades(ctx):
     return
         
 
-async def rtrades(ctx):
+async def rtrades(ctx, bot):
     if ctx.author.bot:
         return
     res = listRequestedTrades(ctx.author.id)

@@ -121,7 +121,7 @@ async def atrades(ctx):
     if ctx.author.bot:
         return
     await ptrades(ctx)
-    await rtrades(ctx)
+    await rtrades(ctx,bot)
 
 @bot.slash_command(name = "promo", description = "Enter a promo code")
 async def promo(ctx,promo):
