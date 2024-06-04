@@ -5,7 +5,7 @@ from contextlib import contextmanager
 with open('config.yml', 'r') as f:
      CONFIG  = yaml.safe_load(f)
 
-pool = psycopg2.pool.SimpleConnectionPool(3,6, user=CONFIG['psql']['user'],
+pool = psycopg2.pool.SimpleConnectionPool(5,12, user=CONFIG['psql']['user'],
                                                password=CONFIG['psql']['password'],
                                                host=CONFIG['psql']['ip'],
                                                port=CONFIG['psql']['port'],

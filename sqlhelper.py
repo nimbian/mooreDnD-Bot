@@ -285,7 +285,6 @@ def acceptTrade(tid,bot):
         cur.execute("update users set gp = gp - '%s' where rwid = (SELECT rid from trades where rwid = '%s')",(mb, tid))
         cur.execute("update users set gp = gp + '%s' where rwid = (SELECT pid from trades where rwid = '%s')",(mb, tid))
         cur.execute("update users set gp = gp + '%s' where rwid = (SELECT rid from trades where rwid = '%s')",(rb, tid))
-        
         rc = []
         for c in rcids:
             rc += [list(getCard(c))]
@@ -294,7 +293,6 @@ def acceptTrade(tid,bot):
         for c in pcids:
             pc += [list(getCard(c))]
             cur.execute("update collections set uid = '%s' where rwid = '%s'",(rid,c[0]))
-        CON.commit()
         cur.execute("select cid from ptrades where tid = '%s' union select cid from rtrades where tid = '%s'",(tid,tid))
         tmp = cur.fetchall()
         cur.execute("select trades.rwid from trades join rtrades on trades.rwid = rtrades.tid where cid IN"+
@@ -305,24 +303,23 @@ def acceptTrade(tid,bot):
         cur.execute("select trades.rwid from trades join ptrades on trades.rwid = ptrades.tid where cid IN"+
                     " (SELECT cid from ptrades where ptrades.tid = '%s')",(tid,))
         ptids = cur.fetchall()
-        for p in ptids:
-            deleteTrade(p[0], Accept=True)
-        deleteTrade(tid, Accept=True)
-        for t in tmp:
-            removeTradesWithCard(t)
-        CON.close()
-        output1 = t2a(
-                header=['Card','Grade','Holo','Value'],
-                body = rc,
-                style = PresetStyle.thin_compact
-        )
-        output2 = t2a(
-                header=['Card','Grade','Holo','Value'],
-                body = pc,
-                style = PresetStyle.thin_compact
-        )
-        resp = f"```{puser} has traded {rb} gp and:\n{output2}\n to {ruser} for {mb} gp and:\n{output1}```"
-        return [getDID(pid), getDID(rid), resp]
+    for p in ptids:
+        deleteTrade(p[0], Accept=True)
+    deleteTrade(tid, Accept=True)
+    for t in tmp:
+        removeTradesWithCard(t)
+    output1 = t2a(
+            header=['Card','Grade','Holo','Value'],
+            body = rc,
+            style = PresetStyle.thin_compact
+    )
+    output2 = t2a(
+            header=['Card','Grade','Holo','Value'],
+            body = pc,
+            style = PresetStyle.thin_compact
+    )
+    resp = f"```{puser} has traded {rb} gp and:\n{output2}\n to {ruser} for {mb} gp and:\n{output1}```"
+    return [getDID(pid), getDID(rid), resp]
 
 def removeTradesWithCard(cid):
     with mydb.db_cursor() as cur:
