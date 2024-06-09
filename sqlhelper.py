@@ -150,6 +150,11 @@ def spendGold(user, gold):
         cur.execute("update users set gp = gp - '%s' where did = '%s'", (gold, user))
     return
 
+def giveToken(user):
+    with mydb.db_cursor() as cur:
+        cur.execute("update users set pulls = pulls + 1 where did = %s", (user,))
+    return
+
 def giveGold(user, gold):
     with mydb.db_cursor() as cur:
         cur.execute("update users set gp = gp + %s where did = %s", (gold, user))

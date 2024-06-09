@@ -69,11 +69,16 @@ async def collection(ctx, user=None):
     out = head + f"```\n{output}\n```"
     await ctx.respond(out, ephemeral=True)
 
+@bot.slash_command(name = "givetoken", description = "ADMIN COMMAND to give a token to user")
+@discord.ext.commands.check(perm)
+async def give_token(ctx, user):
+    giveToken(user[2:-1])
+    await ctx.respond('Token given', ephemeral=True)
 
 @bot.slash_command(name = "givegold", description = "ADMIN COMMAND to give gold to user")
 @discord.ext.commands.check(perm)
 async def give_gold(ctx, user, gold):
-    giveGold(user[2:-1], int(gold))
+    giveGold(user[2:-1], float(gold))
     await ctx.respond('Gold given', ephemeral=True)
 
 @bot.slash_command(name = "delevcol", description = "ADMIN COMMAND to delete event collection")
