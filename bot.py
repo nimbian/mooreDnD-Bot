@@ -262,7 +262,7 @@ async def startEvent(ctx,event):
 
 
 @bot.slash_command(name = "event", description = "Command to participate in current event")
-@discord.ext.commands.cooldown(1,1, type=discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1,10, type=discord.ext.commands.BucketType.user)
 async def event(ctx, value=None):
     await doEvent(ctx, value)
 
