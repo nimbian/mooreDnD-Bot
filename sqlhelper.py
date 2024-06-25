@@ -344,7 +344,7 @@ def deleteTrade(tradeID, Accept=False):
             cur.execute("select money from pmoney where tid = '%s'",(tradeID,))
             mb = cur.fetchone()[0]
             cur.execute("update users set gp = gp + '%s' where rwid = (SELECT pid from trades where rwid = '%s')",(mb, tradeID))
-            cur.execute("delete from trades where rwid = '%s'",(tradeID,))
+        cur.execute("delete from trades where rwid = '%s'",(tradeID,))
     return
 
 def shopCards():
