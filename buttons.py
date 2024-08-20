@@ -55,9 +55,12 @@ class a_button(discord.ui.Button):
     #TODO add message to trade_channel
     async def callback(self, interaction: discord.Interaction):
         self.tmpview.disable_all_items()
-        pid, rid, resp = acceptTrade(self.tradeID,self.bot)
-        await interaction.response.send_message("Trade Accepted!", ephemeral=True)
-        await auditPost(self.bot,resp,'trade')
+        try:
+            pid, rid, resp = acceptTrade(self.tradeID,self.bot)
+            await interaction.response.send_message("Trade Accepted!", ephemeral=True)
+            await auditPost(self.bot,resp,'trade')
+        except:
+            pass
         return
 
 class r_button(discord.ui.Button):

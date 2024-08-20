@@ -9,12 +9,13 @@ def getUserName(did):
         return cur.fetchone()
 
 def sellCards(uid, cards):
-    with mydb.db_cursor() as cur:
-        for c in cards:
+    for c in cards:
+        removeTradesWithCard(c)
+    for c in cards:
+        with mydb.db_cursor() as cur:
             cur.execute("update users set gp = gp + (select value from collections where collections.rwid = %s)"+
                         " where users.did = %s", (c, uid))
             cur.execute("update collections set uid = 0 where rwid = %s", (c,))
-            removeTradesWithCard(c)
     return
 
 def getDID(uid):
@@ -276,7 +277,10 @@ def listRequestedTrades(name):
 def acceptTrade(tid,bot):
     with mydb.db_cursor() as cur:
         cur.execute("select pid, rid from trades where trades.rwid = '%s'",(tid,))
-        pid, rid =     cur.fetchone()
+        try:
+            pid, rid = cur.fetchone()
+        except:
+            return
         puser = getUserName(getDID(pid))[0]
         ruser = getUserName(getDID(rid))[0]
         cur.execute("select cid from rtrades where rtrades.tid = '%s'",(tid,))
