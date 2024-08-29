@@ -135,4 +135,4 @@ def puller(t):
     sd10 = os.path.join(Images, createD10img(grade,'s'))
     tmp = combineImgs(gd20, bd20, td10, sd10)
     combine = discord.File(tmp)
-    return [mon, g, holo, v, combine]
+    return [mon, g, holo, v, combine, CR]

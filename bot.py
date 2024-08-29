@@ -69,6 +69,11 @@ async def collection(ctx, user=None):
     out = head + f"```\n{output}\n```"
     await ctx.respond(out, ephemeral=True)
 
+@bot.slash_command(name = "sendmsg", description = "ADMIN COMMAND to give send msg")
+@discord.ext.commands.check(perm)
+async def send_msg(ctx, msg):
+    await ctx.respond(msg)
+
 @bot.slash_command(name = "givetoken", description = "ADMIN COMMAND to give a token to user")
 @discord.ext.commands.check(perm)
 async def give_token(ctx, user):

@@ -5,7 +5,7 @@ from pullhelper import *
 
 async def mp(ctx, uid, member):
     await ctx.defer()
-    mon, g, holo, v, combine = puller(random.choice(['Monsters','Item']))
+    mon, g, holo, v, combine, CR = puller(random.choice(['Monsters','Item']))
     eventCollectMon(uid, mon[0], g, holo, v, datetime.now(timezone.utc))
     response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
     if holo: 
@@ -18,7 +18,7 @@ async def gv(ctx, value, uid, member):
         await ctx.respond('You have to enter a guess in the event', ephemeral=True)
         return
     await ctx.defer()
-    mon, g, holo, v, combine = puller(random.choice(['Monsters','Item']))
+    mon, g, holo, v, combine, CR = puller(random.choice(['Monsters','Item']))
     eventCollectMon(uid, mon[0], g, holo, v, datetime.now(timezone.utc))
     response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
     if holo: 
@@ -39,7 +39,7 @@ async def pir(ctx, uid, member):
          await ctx.respond('You\'ve pulled too much value' , ephemeral=True)
          return
     await ctx.defer()
-    mon, g, holo, v, combine = puller(random.choice(['Monsters','Item']))
+    mon, g, holo, v, combine, CR = puller(random.choice(['Monsters','Item']))
     eventCollectMon(uid, mon[0], g, holo, v, datetime.now(timezone.utc))
     response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' else '{}[{}]'.format(mon[1],mon[2]) , g)
     if holo: 
@@ -66,7 +66,7 @@ async def raid(ctx, uid, member):
     if cur >= tothp:
          await ctx.respond('{} has already been defeated...Stop! Stop! He\'s already dead'.format(name) , ephemeral=True)
          return
-    mon, g, holo, v, combine = puller(random.choice(['Item']))
+    mon, g, holo, v, combine, CR = puller(random.choice(['Item']))
     TC = getTreasureChance(mon[1])
     if random.random() < 1/(TC[1]+1):
         T = getTreasure(TC[0]) 

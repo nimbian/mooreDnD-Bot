@@ -5,6 +5,10 @@ from pullhelper import *
 from audit import *
 from table2ascii import table2ascii as t2a, PresetStyle 
 import random
+import yaml
+
+with open('godspeak.yml', 'r') as f:
+    GODS = yaml.safe_load(f)
 
 async def buyPulls(sf, cl):
     gp = float(getGold(sf.did))
@@ -13,8 +17,10 @@ async def buyPulls(sf, cl):
     if sf.cost > gp:
         await sf.ctx.respond('You do not have enough gold', ephemeral=True)
         return
+    cr_list = []
     for p in range(sf.pulls):
-        mon, g, holo, v, combine = puller(random.choice(cl))
+        mon, g, holo, v, combine, CR = puller(random.choice(cl))
+        cr_list.append(CR)
         collectMon(uid, mon[0], g, holo, v, datetime.now())
         response = '{} bought a pack containing a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
         if holo:
@@ -23,6 +29,7 @@ async def buyPulls(sf, cl):
 
         await sf.ctx.respond(response, file=combine)
     spendGold(sf.ctx.author.id, sf.cost)
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 async def useToken(sf, cl):
@@ -33,8 +40,10 @@ async def useToken(sf, cl):
         await sf.ctx.respond('No more pulls', ephemeral=True)
         return
     usePull(sf.did)
+    cr_list = []
     for p in range(sf.pulls):
-        mon, g, holo, v, combine = puller(random.choice(cl))
+        mon, g, holo, v, combine, CR = puller(random.choice(cl))
+        cr_list.append(CR)
         collectMon(uid, mon[0], g, holo, v, datetime.now())
         response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
         if holo:
@@ -42,6 +51,7 @@ async def useToken(sf, cl):
         response += ' it has a value of {}'.format(v)
 
         await sf.ctx.respond(response, file=combine)
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 class a_button(discord.ui.Button):
