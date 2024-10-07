@@ -86,6 +86,13 @@ async def give_gold(ctx, user, gold):
     giveGold(user[2:-1], float(gold))
     await ctx.respond('Gold given', ephemeral=True)
 
+@bot.slash_command(name = "addpromo", description = "ADMIN COMMAND to add gold promo")
+@discord.ext.commands.check(perm)
+async def add_promo(ctx, code, gold):
+    addPromo(code, gold)
+    await ctx.respond('Promo Added', ephemeral=True)
+
+
 @bot.slash_command(name = "delevcol", description = "ADMIN COMMAND to delete event collection")
 @discord.ext.commands.check(perm)
 async def delevcol(ctx):
@@ -141,23 +148,32 @@ async def promo(ctx,promo):
     if uid is None:
         createUser(user,ctx.author.id)
         uid = getUserID(ctx.author.id)
-    res = getPromos()
-    p = promo.upper()
-    if p in res.keys():
-        if res[p][5] == 'N':
+    res = getPromos(promo.upper())
+    print(res)
+    if res:
+        if res[5] == 'N':
             response = "This Promo has expired please tune in next time!"
             await ctx.respond(response, ephemeral=True)
             return
         else:
-            if hasCard(ctx.author.id, res[p][0]):
-                response = "You already have this promo"
+            if usedPromo(uid, res[6]):
+                response = "You have already used this promo"
                 await ctx.respond(response, ephemeral=True)
                 return
             else:
-                collectMon(uid, res[p][0], res[p][4], res[p][3], res[p][2], datetime.now())
-                response = "The promo card has been added to your collection"
-                await ctx.respond(response, ephemeral=True)
-                return
+                pTracker(uid, res[6])
+                if res[0] == 0:
+                    print(res[2])
+                    giveGold(ctx.author.id, res[2])
+                    response = "You have been given {} gold".format(res[2])
+                    await ctx.respond(response, ephemeral=True)
+                    return
+
+                else:
+                    collectMon(uid, res[0], res[4], res[3], res[2], datetime.now())
+                    response = "The promo card has been added to your collection"
+                    await ctx.respond(response, ephemeral=True)
+                    return
     else:
         response = 'Invalid Promo'
         await ctx.respond(response, ephemeral=True)
@@ -384,6 +400,24 @@ async def on_command_error(ctx, error):
         await ctx.respond('Event timer cooldown {} second(s)'.format(int(error.retry_after % 60)), ephemeral=True)
         return
     raise error
+
+#@bot.slash_command(name = "test", description = "List all commands")
+#async def test(ctx,c=1):
+#    #bnum = random.randint(1,25)
+#    #tmpview = discord.ui.View(timeout=60)
+#    #for i in range(0,5):
+#    #    for j in range(0,5):
+#    #        if (i*5 + j) == bnum:
+#    #            t = g_button(c)
+#    #            t.label = "O"
+#    #        else:
+#    #            t = x_button()
+#    #            t.label = "X"
+#    #        t.row = i
+#    #        tmpview.add_item(t)
+#    tmp = dview()
+#    tmp.set()
+#    await ctx.respond(view=tmp, ephemeral=True)
 
 @bot.slash_command(name = "help", description = "List all commands")
 async def help(ctx):

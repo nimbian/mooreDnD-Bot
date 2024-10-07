@@ -161,13 +161,23 @@ def giveGold(user, gold):
         cur.execute("update users set gp = gp + %s where did = %s", (gold, user))
     return
 
-def getPromos():
+def getPromos(promo):
     with mydb.db_cursor() as cur:
-        cur.execute("select * from promos")
-        res = {}
-        for tmp in cur.fetchall():
-            res[tmp[1]] = tmp
-        return res
+        cur.execute("select * from promos where code = %s", (promo,))
+        try:
+            return cur.fetchone()
+        except:
+            return None
+
+def pTracker(did, code):
+    with mydb.db_cursor() as cur:
+        cur.execute("insert into ptracker values(%s, %s)", (did, code))
+    return
+
+def addPromo(code, gold):
+    with mydb.db_cursor() as cur:
+        cur.execute("insert into promos values(0, %s, %s, 0, 0, 'N')", (code, gold))
+    return
 
 def getBestCards():
     d = datetime.now()
@@ -198,6 +208,17 @@ def yourCard(card, name):
         except:
             res = None
         return res
+
+def usedPromo(did, code):
+    with mydb.db_cursor() as cur:
+        try:
+            cur.execute("select 1 from ptracker where did = '%s' and code = %s",(did, code))
+            res = cur.fetchone()
+        except:
+            res = False
+        return res
+
+
 
 def cardExists(card):
     with mydb.db_cursor() as cur:

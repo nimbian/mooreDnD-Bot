@@ -29,7 +29,7 @@ async def buyPulls(sf, cl):
 
         await sf.ctx.respond(response, file=combine)
     spendGold(sf.ctx.author.id, sf.cost)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 async def useToken(sf, cl):
@@ -51,7 +51,7 @@ async def useToken(sf, cl):
         response += ' it has a value of {}'.format(v)
 
         await sf.ctx.respond(response, file=combine)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 class a_button(discord.ui.Button):
@@ -296,3 +296,162 @@ class bs_button(discord.ui.Button):
         await interaction.response.send_message("Card Purchased!", ephemeral=True)
         await auditPost(self.bot,resp,'buy')
         return
+
+c = 0
+
+class dview(discord.ui.View):
+
+
+
+    bnum = random.sample(range(0,25),4)
+    def set(self):
+        global bnum 
+        bnum = random.sample(range(0,25),4)
+   
+
+
+    c1 = 0
+    c2 = 0
+    c = 0
+    #tmpview = discord.ui.View(timeout=60)
+    for i in range(0,5):
+        for j in range(0,5):
+            if (i*5 + j) in bnum:
+                if c1 == 0:
+                    @discord.ui.button(label="O", row=i, style=discord.ButtonStyle.green)
+                    async def b1_callback(self, button, interaction):
+                        button.disabled = True
+                        await interaction.response.edit_message(view=self)
+                        if len(['x' for i in self.children if i.disabled]) == 4:
+                            await interaction.followup.send("Dice retrieved", ephemeral=True)
+                elif c1 == 1:
+                    @discord.ui.button(label="O", row=i, style=discord.ButtonStyle.green)
+                    async def b2_callback(self, button, interaction):
+                        button.disabled = True
+                        await interaction.response.edit_message(view=self)
+                        if len(['x' for i in self.children if i.disabled]) == 4:
+                            await interaction.followup.send("Dice retrieved", ephemeral=True)
+                elif c1 == 2:
+                    @discord.ui.button(label="O", row=i, style=discord.ButtonStyle.green)
+                    async def b3_callback(self, button, interaction):
+                        button.disabled = True
+                        await interaction.response.edit_message(view=self)
+                        if len(['x' for i in self.children if i.disabled]) == 4:
+                            await interaction.followup.send("Dice retrieved", ephemeral=True)
+                elif c1 == 3:
+                    @discord.ui.button(label="O", row=i, style=discord.ButtonStyle.green)
+                    async def b4_callback(self, button, interaction):
+                        button.disabled = True
+                        await interaction.response.edit_message(view=self)
+                        if len(['x' for i in self.children if i.disabled]) == 4:
+                            await interaction.followup.send("Dice retrieved", ephemeral=True)
+                c1 += 1
+            else:
+                if c2 == 0:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b5_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 1:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b6_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 2:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b7_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 3:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b8_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 4:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b9_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 5:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b10_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 6:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b11_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 7:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b12_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 8:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b13_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 9:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b14_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 10:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b15_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 11:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b16_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 12:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b17_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 13:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b18_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 14:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b19_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 15:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b20_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 16:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b21_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 17:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b22_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 18:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b23_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 19:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b24_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                if c2 == 20:
+                    @discord.ui.button(label="x", row=i, style=discord.ButtonStyle.red)
+                    async def b25_callback(self, button, interaction):
+                        await interaction.response.send_message("")
+                c2 += 1
+
+class g_button(discord.ui.Button):
+    def __init__(self,c=1):
+        super().__init__(label="", style=discord.ButtonStyle.green)
+        self.c = c
+
+    async def callback(self, interaction: discord.Interaction):
+        self.disabled = True
+        if self.c == 4:
+            await interaction.response.send_message("Done", ephemeral=True)
+            return -1
+        await interaction.response.edit_message(view=super())
+        await interaction.response.send_message(self.c, ephemeral=True)
+        return self.c+1
+
+
+class x_button(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="", style=discord.ButtonStyle.red)
+
+    async def callback(self, interaction: discord.Interaction):
+        return 1
+
