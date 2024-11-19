@@ -36,21 +36,22 @@ async def pir(ctx, uid, member):
     except:
         pass
     if cur > pir:
-         await ctx.respond('You\'ve pulled too much value' , ephemeral=True)
+         await ctx.respond('You\'ve lost your way' , ephemeral=True)
          return
     await ctx.defer()
-    mon, g, holo, v, combine, CR = puller(random.choice(['Monsters','Item']))
+    mon, g, holo, v, combine, CR = puller(random.choice(['Locations']))
     eventCollectMon(uid, mon[0], g, holo, v, datetime.now(timezone.utc))
-    response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' else '{}[{}]'.format(mon[1],mon[2]) , g)
+    ts = ['walked','ran','rode a horse','took a Broom of Flying','Wind Walked', 'teleported/Plane Shifted']
+    response = '{} {} to {}'.format(member, ts[g-5], mon[1] if mon[2] in ['BS', 'IBS', 'LBS'] else '{}[{}]'.format(mon[1],mon[2]))
     if holo: 
-        response += ' and it was a HOLOGRAPHIC!!!!'
-    response += ' it has a value of {}'.format(v)
+        response += ' and FOUND A MAJOR CLUE'
+    response += ', bringing them {}ft closer to the treasure.'.format(v)
     await ctx.followup.send(response,file=combine)
     tmp = cur + float(v)
     if tmp > pir:
-        await ctx.followup.send('You have a event collection value of {} which is over.  Better luck next time'.format(round(tmp,3)), ephemeral=True)
+        await ctx.followup.send('You have traveled too far.  You have lost your way.', ephemeral=True)
     else:
-        await ctx.followup.send('You have a event collection value of {} which is {} under the goal value but don\'t go over'.format(round(tmp,3), round(int(getOption('pir')) - tmp,3)), ephemeral=True)
+        await ctx.followup.send('You are {}ft away from the treasure.'.format(round(int(getOption('pir')) - tmp,3)), ephemeral=True)
 
 async def raid(ctx, uid, member):
     await ctx.defer()
@@ -105,3 +106,34 @@ async def doEvent(ctx, value=None):
         await raid(ctx, uid, member)
     else:
         await ctx.respond('No current event', ephemeral=True)
+
+async def pirStatus(ctx, uid, member):
+    pir = int(getOption('pir'))
+    cur = 0
+    try:
+        cur = float(getEvColValue(ctx.author.id)[0])
+    except:
+        pass
+    if cur > pir:
+         await ctx.respond('You\'ve lost your way' , ephemeral=True)
+         return
+    await ctx.respond('You are {}ft away from the treasure.'.format(round(int(getOption('pir'))- cur,3)), ephemeral=True)
+
+async def doEventStatus(ctx, value=None):
+    ev = getActiveEvent()
+    uid = getUserID(ctx.author.id)
+    member = ctx.author.display_name
+    e = ''
+    if ev:
+        e = ev[0]
+    if e == 'mp':
+        await mpStatus(ctx, uid, member)
+    elif e == 'gv':
+        await gvStatus(ctx, value, uid, member)
+    elif e == 'pir':
+        await pirStatus(ctx, uid, member)
+    elif e == 'raid':
+        await raidStatus(ctx, uid, member)
+    else:
+        await ctx.respond('No current event', ephemeral=True)
+

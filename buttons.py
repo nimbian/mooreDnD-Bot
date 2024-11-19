@@ -22,7 +22,7 @@ async def buyPulls(sf, cl):
         mon, g, holo, v, combine, CR = puller(random.choice(cl))
         cr_list.append(CR)
         collectMon(uid, mon[0], g, holo, v, datetime.now())
-        response = '{} bought a pack containing a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
+        response = '{} bought a pack containing a {} with a grade of {}'.format(member, mon[1] if mon[2] in ['BS', 'IBS', 'LBS'] else '{}[{}]'.format(mon[1],mon[2]) , g)
         if holo:
             response += ' and it was a HOLOGRAPHIC!!!!'
         response += ' it has a value of {}'.format(v)
@@ -45,7 +45,7 @@ async def useToken(sf, cl):
         mon, g, holo, v, combine, CR = puller(random.choice(cl))
         cr_list.append(CR)
         collectMon(uid, mon[0], g, holo, v, datetime.now())
-        response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] == 'BS' or mon[2] == 'IBS' else '{}[{}]'.format(mon[1],mon[2]) , g)
+        response = '{} pulled a {} with a grade of {}'.format(member, mon[1] if mon[2] in ['BS', 'IBS', 'LBS'] else '{}[{}]'.format(mon[1],mon[2]) , g)
         if holo:
             response += ' and it was a HOLOGRAPHIC!!!!'
         response += ' it has a value of {}'.format(v)
@@ -194,7 +194,7 @@ class s_button(discord.ui.Button):
 class bm_button(discord.ui.Button):
 	#TODO add protection
     def __init__(self, ctx, did, pulls, cost):
-        super().__init__(label="Buy {} Monster Cards!".format(pulls), style=discord.ButtonStyle.green)
+        super().__init__(label="Buy {} Creature Cards!".format(pulls), style=discord.ButtonStyle.green)
         self.ctx = ctx
         self.did = did
         self.pulls = pulls
@@ -219,6 +219,19 @@ class bi_button(discord.ui.Button):
         await buyPulls(self, ['Item'])
         return
 
+class bl_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx, did, pulls, cost):
+        super().__init__(label="Buy {} Location Cards!".format(pulls), style=discord.ButtonStyle.grey)
+        self.ctx = ctx
+        self.did = did
+        self.pulls = pulls
+        self.cost = cost
+
+
+    async def callback(self, interaction: discord.Interaction):
+        await buyPulls(self, ['Locations'])
+        return
 
 class br_button(discord.ui.Button):
 	#TODO add protection
@@ -232,12 +245,12 @@ class br_button(discord.ui.Button):
         
 
     async def callback(self, interaction: discord.Interaction):
-        await buyPulls(self, ['Monsters','Item'])
+        await buyPulls(self, ['Monsters','Item','Locations'])
 
 class pm_button(discord.ui.Button):
 	#TODO add protection
     def __init__(self, ctx, did, pulls):
-        super().__init__(label="Use token for {} Monster Cards!".format(pulls), style=discord.ButtonStyle.green)
+        super().__init__(label="Use token for {} Creature Cards!".format(pulls), style=discord.ButtonStyle.green)
         self.ctx = ctx
         self.did = did
         self.pulls = pulls
@@ -260,6 +273,19 @@ class pi_button(discord.ui.Button):
         await useToken(self, ['Item'])
         return
 
+class pl_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx, did, pulls):
+        super().__init__(label="Use token for {} Location Cards!".format(pulls), style=discord.ButtonStyle.grey)
+        self.ctx = ctx
+        self.did = did
+        self.pulls = pulls
+
+
+    async def callback(self, interaction: discord.Interaction):
+        await useToken(self, ['Locations'])
+        return
+
 
 class pr_button(discord.ui.Button):
 	#TODO add protection
@@ -270,7 +296,7 @@ class pr_button(discord.ui.Button):
         self.pulls = pulls
 
     async def callback(self, interaction: discord.Interaction):
-        await useToken(self, ['Monsters','Item'])
+        await useToken(self, ['Monsters','Item','Locations'])
         return
 
 class bs_button(discord.ui.Button):

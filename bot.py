@@ -149,7 +149,6 @@ async def promo(ctx,promo):
         createUser(user,ctx.author.id)
         uid = getUserID(ctx.author.id)
     res = getPromos(promo.upper())
-    print(res)
     if res:
         if res[5] == 'N':
             response = "This Promo has expired please tune in next time!"
@@ -163,7 +162,6 @@ async def promo(ctx,promo):
             else:
                 pTracker(uid, res[6])
                 if res[0] == 0:
-                    print(res[2])
                     giveGold(ctx.author.id, res[2])
                     response = "You have been given {} gold".format(res[2])
                     await ctx.respond(response, ephemeral=True)
@@ -210,6 +208,7 @@ async def pull(ctx):
     tmpview = discord.ui.View(timeout=60)
     tmpview.add_item(pm_button(ctx, ctx.author.id, pulls))
     tmpview.add_item(pi_button(ctx, ctx.author.id, pulls))
+    tmpview.add_item(pl_button(ctx, ctx.author.id, pulls))
     tmpview.add_item(pr_button(ctx, ctx.author.id, pulls))
     resp = "Use a token for {} cards?".format(pulls)
     await ctx.respond(resp, view=tmpview, ephemeral=True)
@@ -257,6 +256,29 @@ async def roles():
                     await delRole(tmp, c)
                 except:
                     pass
+    mms = [x[0] for x in getMMS()]
+    css = [x[0] for x in getCSS()]
+    newmms = getColAbove(100000)
+    newcss = getColAbove(250000)
+    tmpmms = [x[0] for x in newmms]
+    tmpcss = [x[0] for x in newcss]
+    for ms in tmpmms:
+        if ms not in mms:
+            await addRole(ms, 'Major Moneybags')
+            addMMS(ms)
+    for cs in tmpcss:
+        if cs not in css:
+            await addRole(cs, 'Corporate Shill')
+            addCSS(cs)
+
+    for ms in mms:
+        if ms not in tmpmms:
+            await delRole(ms, 'Major Moneybags')
+    for cs in css:
+        if cs not in tmpcss:
+            await delRole(cs, 'Corporate Shill')
+
+
             
 
 def flattenRoles(cs):
@@ -271,8 +293,33 @@ def flattenRoles(cs):
 @bot.slash_command(name = "endevent", description = "ADMIN ONLY COMMAND to stop event")
 @discord.ext.commands.check(perm)
 async def endEvent(ctx):
-    deactivateEvent()
+    ev = deactivateEvent()
     await ctx.respond('Event ended', ephemeral=True)
+    if ev == 'pir':
+        ts = getTravelers()
+        tmp = []
+        for t in ts[:5]:
+            tmp += [[t[0],t[1]]]
+        output = t2a(
+            header=["Traveler", "Distance from treasure"],
+            body = tmp,
+            style = PresetStyle.thin_compact
+        )
+        resp = f"Closest Treasure Hunters:\n```\n{output}\n```"
+        await ctx.respond(resp)
+        f = os.path.join(Collections, "EV.csv" )
+        try:
+            os.remove(f)
+        except:
+            pass
+        with open(f, 'w+') as csvfile:
+            sw = csv.writer(csvfile)
+            sw.writerow(["User","dist"])
+            for r in ts:
+                sw.writerow(r)
+        file = discord.File(f)
+        await ctx.respond(file=file, ephemeral=True)
+
 
 
 @bot.slash_command(name = "startevent", description = "ADMIN ONLY COMMAND to stop event")
@@ -283,9 +330,14 @@ async def startEvent(ctx,event):
 
 
 @bot.slash_command(name = "event", description = "Command to participate in current event")
-@discord.ext.commands.cooldown(1,10, type=discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(100,1, type=discord.ext.commands.BucketType.user)
 async def event(ctx, value=None):
     await doEvent(ctx, value)
+
+
+@bot.slash_command(name = "eventstatus", description = "Command to get status of event")
+async def event(ctx, value=None):
+    await doEventStatus(ctx, value)
 
 @bot.slash_command(name = "shop", description = "Buy Cards from shop")
 async def shop(ctx, shopcardid=None):
@@ -339,6 +391,7 @@ async def buypulls(ctx):
     tmpview = discord.ui.View(timeout=60)
     tmpview.add_item(bm_button(ctx, ctx.author.id, pulls, cost))
     tmpview.add_item(bi_button(ctx, ctx.author.id, pulls, cost))
+    tmpview.add_item(bl_button(ctx, ctx.author.id, pulls, cost))
     tmpview.add_item(br_button(ctx, ctx.author.id, pulls, cost))
     resp = "Buy {} cards for {}?".format(pulls, cost)
     await ctx.respond(resp, view=tmpview, ephemeral=True)

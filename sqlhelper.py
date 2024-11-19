@@ -63,6 +63,17 @@ def getUserID(user):
         except:
             return None
 
+def getTravelers():
+    with mydb.db_cursor() as cur:
+        try:
+            cur.execute("select * from (select name, (select value from options where key = 'pir')::int - sum(value) "+
+                        "as dist from eventcollections join users on eventcollections.uid = users.rwid group by name order by dist) as A where dist > 0")
+            return cur.fetchall()
+        except:
+            return None
+
+
+
 def eventCollectMon(uid, monid, grade, holo, value, date):
     with mydb.db_cursor() as cur:
         cur.execute("INSERT into eventCollections(uid, monid, grade, holo, value, date)"+
@@ -128,8 +139,9 @@ def getAllUsers():
     
 def deactivateEvent():
     with mydb.db_cursor() as cur:
+        tmp = getActiveEvent()[0]
         cur.execute("update events set active = '%s'",(0,))
-    return
+    return tmp
 
 def activateEvent(event):
     with mydb.db_cursor() as cur:
@@ -176,8 +188,33 @@ def pTracker(did, code):
 
 def addPromo(code, gold):
     with mydb.db_cursor() as cur:
-        cur.execute("insert into promos values(0, %s, %s, 0, 0, 'N')", (code, gold))
+        cur.execute("insert into promos values(0, %s, %s, 0, 0, 'Y')", (code.upper(), gold))
     return
+
+def getMMS():
+    with mydb.db_cursor() as cur:
+        cur.execute("select did from MMS")
+        return cur.fetchall()
+
+def getCSS():
+    with mydb.db_cursor() as cur:
+        cur.execute("select did from CSS")
+        return cur.fetchall()
+
+def addMMS(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("insert into MMS values(%s)", (did,))
+        return
+
+def addCSS(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("insert into CSS values(%s)", (did,))
+        return
+
+def getColAbove(gold):
+    with mydb.db_cursor() as cur:
+        cur.execute("select * from (select did, sum(value) from users join collections on users.rwid = collections.uid where did > 0 group by did)as a where sum > %s", (gold, ))
+        return cur.fetchall()
 
 def getBestCards():
     d = datetime.now()
