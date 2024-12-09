@@ -188,7 +188,7 @@ def pTracker(did, code):
 
 def addPromo(code, gold):
     with mydb.db_cursor() as cur:
-        cur.execute("insert into promos values(0, %s, %s, 0, 0, 'Y')", (code.upper(), gold))
+        cur.execute("insert into promos values(-1, %s, %s, 0, 0, 'Y')", (code.upper(), gold))
     return
 
 def getMMS():
