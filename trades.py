@@ -133,9 +133,9 @@ async def rtrades(ctx, bot):
         for i in range(m):
             t = []
             if i >= plen:
-                t += [r,'','','','']
+                t += ['','','','']
             else:
-                t += [r,res[r]['p'][i][0],res[r]['p'][i][1],res[r]['p'][i][2],res[r]['p'][i][3]]
+                t += [res[r]['p'][i][0],res[r]['p'][i][1],res[r]['p'][i][2],res[r]['p'][i][3]]
             if i >= rlen:
                 t += ['','','','']
             else:
@@ -143,7 +143,7 @@ async def rtrades(ctx, bot):
             tmp += [t]
 
         output = t2a(
-            header=["Trade id", "Your Card", "Grade", "Holo", "Value", "Their Card", "Grade", "Holo", "Value"],
+            header=["Your Card", "Grade", "Holo", "Value", "Their Card", "Grade", "Holo", "Value"],
             body = tmp,
             style = PresetStyle.thin_compact
         )
