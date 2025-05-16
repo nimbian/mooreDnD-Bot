@@ -52,7 +52,7 @@ def usePull(did):
 
 def createUser(user, did):
     with mydb.db_cursor() as cur:
-        cur.execute("INSERT into users(name,did,gp,pulls) values (%s,%s,0,3)",(user,did))
+        cur.execute("INSERT into users(name,did,gp,pulls,es,entries) values (%s,%s,0,3,1,0)",(user,did))
     return
 
 def getUserID(user):
@@ -62,6 +62,33 @@ def getUserID(user):
             return cur.fetchone()[0]
         except:
             return None
+
+def getSponsors():
+    with mydb.db_cursor() as cur:
+        try:
+            cur.execute("SELECT rwid,name,exp from mons where exp = 'SPONS'")
+            return cur.fetchall()
+        except:
+            return None
+
+
+def giveTTEntries(uid, es, un):
+    with mydb.db_cursor() as cur:
+        cur.execute("update users set ttentries = %s, tt = 0, ttusername = %s where rwid = %s",(es,un,uid))
+
+def giveYTEntries(uid, es, un):
+    with mydb.db_cursor() as cur:
+        cur.execute("update users set ytentries = %s, yt = 0, ytusername = %s where rwid = %s",(es,un,uid))
+
+def hasTT(uid):
+    with mydb.db_cursor() as cur:
+        cur.execute("select tt from users where rwid = %s",(uid,))
+        return int(cur.fetchone()[0])
+
+def hasYT(uid):
+    with mydb.db_cursor() as cur:
+        cur.execute("select yt from users where rwid = %s",(uid,))
+        return int(cur.fetchone()[0])
 
 def getTravelers():
     with mydb.db_cursor() as cur:
@@ -104,7 +131,7 @@ def collectMon(uid, monid, grade, holo, value, date):
 
 def getMonsFromCR(CR, t):
     with mydb.db_cursor() as cur:
-        cur.execute("SELECT rwid,name,exp from mons where CR = %s and exp != 'Promo' and class = %s",(CR,t))
+        cur.execute("SELECT rwid,name,exp from mons where CR = %s and exp != 'Promo' and exp != 'Spons' and class = %s",(CR,t))
         return cur.fetchall()
 
 def getEvColValue(did):
@@ -209,6 +236,16 @@ def addMMS(did):
 def addCSS(did):
     with mydb.db_cursor() as cur:
         cur.execute("insert into CSS values(%s)", (did,))
+        return
+
+def delMMS(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("delete from MMS where did = %s", (did,))
+        return
+
+def delCSS(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("delete from CSS where did = %s", (did,))
         return
 
 def getColAbove(gold):

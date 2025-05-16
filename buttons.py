@@ -6,6 +6,8 @@ from audit import *
 from table2ascii import table2ascii as t2a, PresetStyle 
 import random
 import yaml
+import os
+Images = "/home/bramsel/pybot/images/"
 
 with open('godspeak.yml', 'r') as f:
     GODS = yaml.safe_load(f)
@@ -28,6 +30,7 @@ async def buyPulls(sf, cl):
         response += ' it has a value of {}'.format(v)
 
         await sf.ctx.respond(response, file=combine)
+    await sponsor(sf.ctx)
     spendGold(sf.ctx.author.id, sf.cost)
     #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
@@ -51,6 +54,7 @@ async def useToken(sf, cl):
         response += ' it has a value of {}'.format(v)
 
         await sf.ctx.respond(response, file=combine)
+    await sponsor(sf.ctx)
     #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
@@ -481,3 +485,120 @@ class x_button(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         return 1
 
+async def giveawayEntries(sf, es, un, plat, roll):
+    uid = getUserID(sf.ctx.author.id)
+    print(plat)
+    if not uid:
+        createUser(sf.ctx.author.id)
+        uid = getUserID(sf.ctx.author.id)
+    if plat == 'yt':
+        if hasYT(uid):
+            giveYTEntries(uid, es, un)
+            if roll:
+                if es < 10:
+                    await sf.ctx.respond('Bravery met misfortune - the gods of chance are cruel, but the tale is legendary. {} received {} entries.'.format(sf.ctx.author.display_name,es), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                elif es > 10:
+                    await sf.ctx.respond('{} laughed in the face of chance and was met with favor. Enjoy your {} entries.'.format(sf.ctx.author.display_name,es), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                else:
+                    await sf.ctx.respond('With a roll of fate, (insert {} landed squarely at 10 entries — no gain, no loss, just a perfect mirror of the path not taken.'.format(sf.ctx.author.display_name), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                await sf.ctx.respond('Thanks for entering, and good luck! Make sure to tune into the MooreDnD stream on **Wednesday, May 28th @ 830 P.M. EST** to see the drawing live!', ephemeral=True)
+            else:
+                await sf.ctx.respond('Treading the path of caution, {} has secured a guaranteed 10 entries into the Dungeon Alchemist giveaway.'.format(sf.ctx.author.display_name))
+                await sf.ctx.respond('Thanks for entering, and good luck! Make sure to tune into the MooreDnD stream on **Wednesday, May 28th @ 830 P.M. EST** to see the drawing live!', file=discord.File(os.path.join(Images, "10.png")), ephemeral=True)
+        else:
+            await sf.ctx.respond('No more entries', ephemeral=True)
+    if plat == 'tt':
+        if hasTT(uid):
+            giveTTEntries(uid, es, un)
+            if roll:
+                if es < 10:
+                    await sf.ctx.respond('Bravery met misfortune - the gods of chance are cruel, but the tale is legendary. {} received {} entries.'.format(sf.ctx.author.display_name,es), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                elif es > 10:
+                    await sf.ctx.respond('{} laughed in the face of chance and was met with favor. Enjoy your {} entries.'.format(sf.ctx.author.display_name,es), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                else:
+                    await sf.ctx.respond('With a roll of fate, {} landed squarely at 10 entries — no gain, no loss, just a perfect mirror of the path not taken.'.format(sf.ctx.author.display_name), file=discord.File(os.path.join(Images, "rollgifs", '{}.gif'.format(es))))
+                await sf.ctx.respond('Thanks for entering, and good luck! Make sure to tune into the MooreDnD stream on **Wednesday, May 28th @ 830 P.M. EST** to see the drawing live!', ephemeral=True)
+            else:
+                await sf.ctx.respond('Treading the path of caution, {} has secured a guaranteed 10 entries into the Dungeon Alchemist giveaway.'.format(sf.ctx.author.display_name))
+                await sf.ctx.respond('Thanks for entering, and good luck! Make sure to tune into the MooreDnD stream on **Wednesday, May 28th @ 830 P.M. EST** to see the drawing live!', file=discord.File(os.path.join(Images, "10.png")), ephemeral=True)
+        else:
+            await sf.ctx.respond('No more entries', ephemeral=True)
+    return
+
+
+
+class ga_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx, un, plat):
+        super().__init__(label="(Guaranteed) 10 Entries", style=discord.ButtonStyle.green)
+        self.ctx = ctx
+        self.un = un
+        self.plat = plat
+
+    async def callback(self, interaction: discord.Interaction):
+        await giveawayEntries(self, 10, self.un, self.plat, False)
+        return
+
+class gr_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx, un, plat):
+        super().__init__(label="(Random) 1 to 20 Entries", style=discord.ButtonStyle.red)
+        self.ctx = ctx
+        self.un = un
+        self.plat = plat
+
+    async def callback(self, interaction: discord.Interaction):
+        await giveawayEntries(self, random.randint(1,20), self.un, self.plat, True)
+        return
+
+class yt_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx, un):
+        uid = getUserID(ctx.author.id)
+        if hasYT(uid):
+            super().__init__(label="YouTube", style=discord.ButtonStyle.red)
+        else:
+            super().__init__(label="YouTube", style=discord.ButtonStyle.red, disabled=True)
+        self.ctx = ctx
+        self.un = un
+
+    async def callback(self, interaction: discord.Interaction):
+        tmpview = discord.ui.View(timeout=60)
+        tmpview.add_item(ga_button(self.ctx, self.un,'yt'))
+        tmpview.add_item(gr_button(self.ctx, self.un,'yt'))
+        msg = '''
+        Awesome - now for the fun part!
+        Each participant is equally given the same choice of two ways to enter. Would you like to:
+        A) Take the safe route and receive a **guaranteed 10 entries** into the giveaway with this platform username, or-
+        B) Let fate and chaos decide, receiving a **random number of entries, ranging from 1 to 20** (a classic D20 roll) with this platform username?
+        Select your choice below, but beware - **this choice can not be undone**!
+        '''
+
+        await interaction.response.send_message(msg, view=tmpview, ephemeral=True)
+        return
+
+
+class tt_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, ctx,un):
+        uid = getUserID(ctx.author.id)
+        if hasTT(uid):
+            super().__init__(label="TikTok", style=discord.ButtonStyle.blurple)
+        else:
+            super().__init__(label="TikTok", style=discord.ButtonStyle.blurple, disabled=True)
+        self.ctx = ctx
+        self.un = un
+
+    async def callback(self, interaction: discord.Interaction):
+        tmpview = discord.ui.View(timeout=60)
+        tmpview.add_item(ga_button(self.ctx, self.un,'tt'))
+        tmpview.add_item(gr_button(self.ctx, self.un,'tt'))
+        msg = '''
+        Awesome - now for the fun part!
+        Each participant is equally given the same choice of two ways to enter. Would you like to:
+        A) Take the safe route and receive a **guaranteed 10 entries** into the giveaway with this platform username, or-
+        B) Let fate and chaos decide, receiving a **random number of entries, ranging from 1 to 20** (a classic D20 roll) with this platform username?
+        Select your choice below, but beware - **this choice can not be undone**!
+        '''
+        await interaction.response.send_message(msg, view=tmpview, ephemeral=True)
+        return

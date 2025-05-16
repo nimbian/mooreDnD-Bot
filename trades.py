@@ -114,7 +114,7 @@ async def ptrades(ctx):
         tmpview = discord.ui.View(timeout=60)
         tmpview.add_item(w_button(r))
         
-        await ctx.respond(resp, view=tmpview, ephemeral=True)
+        await ctx.respond(resp[:1950], view=tmpview, ephemeral=True)
     return
         
 
@@ -154,5 +154,5 @@ async def rtrades(ctx, bot):
         tmpview.add_item(r_button(r,tmpview))
 
         
-        await ctx.respond(resp, view=tmpview, ephemeral=True)
+        await ctx.respond(resp[:1950], view=tmpview, ephemeral=True)
     return

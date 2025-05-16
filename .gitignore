@@ -2,7 +2,7 @@
 __pycache__/
 virt/
 *.swp
-images/gens/
+images/
 *.sql
 *.sh
 shop.py

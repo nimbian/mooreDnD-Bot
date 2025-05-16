@@ -16,11 +16,44 @@ GradeList = [45,65,80,90,96,101]
 ValueGP = [0.50,0.68,0.90,1.16,1.49,1.93,2.51,3.22,4.16,5.39,6.94,8.92,11.45,14.68,18.82,24.13,30.84,39.36,50.16,63.76,80.88,102.34,129.20,162.50,203.52,254.10,315.75,390.07,479.97,585.41,708.93,848.60,2000.00]
 ValueMulti = [1,1.2,1.5,2,3,5]
 
-Images = "/home/bramsel/pybot/images/"
+Images = "/home/bramsel/pybot-dev/mooreDnD-Bot/images/"
+
+FF_LIST = [1214255387193245726,
+           587093342102224917,
+           693204053546500117,
+           257535802223886339,
+           752747072553484359,
+           527718295751622656,
+           236153107258540033,
+           542406091426889731,
+           222886192436215809,
+           98962763174412288]
 
 async def getDID(user):
     did = await bot.fetch_user(user)
     return did
+
+async def sponsor(ctx):
+    if ctx.author.id in FF_LIST:
+        return
+    if random.randint(1,2500) == 1:
+        uid = getUserID(ctx.author.id)
+        mon = random.choice(getSponsors())
+        grade = random.randint(1,100)
+        g = 0
+        while grade > GradeList[g]:
+            g += 1
+        g += 5
+        v = round(2000 * ValueMulti[g-5] * 2,3)
+        collectMon(uid, mon[0], g, 1, v, datetime.now())
+        tmp = createCardImg(mon[0], 10, 1, 'Item')
+        resp = '''
+        Congratulations is in order to {} from @everyone here for being the first adventurer to uncover the legendary Dungeon Alchemist sponsor card. As a reward for your bold fortune {}, you've’ve earned a FREE copy of Dungeon Alchemist, the 3D generative mapmaking tool that brings imagination to life!
+
+While the event has now ended, your collections may forever grow! Continue to look out for the legendary Dungeon Alchemist card in every pack and keep an eye out for new cards in the future. Happy hunting everyone!'''
+        await ctx.respond(resp.format(ctx.author.name.replace('_','\_').replace('*','\*'),ctx.author.name.replace('_','\_').replace('*','\*')), file=discord.File(tmp))
+
+
 
 
 def holo_multi(cr):
@@ -103,6 +136,76 @@ def combineImgs(gd, bd, td, sd):
         new_im.save(tmp)
     return tmp
 
+def createCardImg(cid, g, h, t):
+    #cid = random.randint(1,10)
+    if h:
+        h = random.randint(1,16)
+        if h < 13:
+            hx = random.randint(0,1)
+            hy = random.randint(0,1)
+            hrot = random.randint(0,1)
+        else:
+            hx = 0
+            hy = 0
+            hrot = 0
+
+    if g < 10:
+        gsub = random.randint(1,3)
+        gx = random.randint(0,1)
+        gy = random.randint(0,1)
+        grot = random.randint(0,1)
+    else:
+        gsub = 1
+        gx = 0
+        gy = 0
+        grot = 0
+
+    if h:
+        genImg = os.path.join(Images, "gens", 'c{}hx{}y{}rot{}gsub{}x{}y{}rot{}.png'.format(cid,hx,hy,hrot,gsub,gx,gy,grot))
+    else:
+        genImg = os.path.join(Images, "gens", 'c{}gsub{}x{}y{}rot{}.png'.format(cid,gsub,gx,gy,grot))
+    if not os.path.isfile(genImg) or True:
+        baseImg = os.path.join(Images, 'cards', 'Cards', '{}.png'.format(cid))
+        gImg = os.path.join(Images, 'cards', 'Grade', 'G{}_{}.png'.format(g,gsub))
+        print(gImg)
+        cImg = ''
+        if t == 'Monsters':
+            cImg = os.path.join(Images, 'cards', 'Color', '{}.png'.format('Red'))
+        elif t == 'Item':
+            cImg = os.path.join(Images, 'cards', 'Color', '{}.png'.format('Blue'))
+        elif t == 'Locations':
+            cImg = os.path.join(Images, 'cards', 'Color', '{}.png'.format('Green'))
+        shutil.copyfile(baseImg, genImg)
+        img = Image.open(genImg)
+        img = img.convert("RGBA")
+        gimg = Image.open(gImg)
+        cimg = Image.open(cImg)
+        cimg = cimg.convert("RGBA")
+        if h:
+            hImg = os.path.join(Images, 'cards', 'Holo', 'H{}.png'.format(h))
+            himg = Image.open(hImg)
+            if hx:
+                himg = himg.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if hy:
+                himg = himg.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            if hrot:
+                himg = himg.transpose(Image.Transpose.ROTATE_180)
+            himg = himg.convert("RGBA")
+            cimg.paste(himg,(0,0),himg)
+
+        if gx:
+            gimg = gimg.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        if gy:
+            gimg = gimg.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        if grot:
+            gimg = gimg.transpose(Image.Transpose.ROTATE_180)
+        gimg = gimg.convert("RGBA")
+        cimg.paste(img,(0,0),img)
+        cimg.paste(gimg,(0,0),gimg)
+        cimg.save(genImg)
+    return genImg
+
+
 def puller(t):
     GD = random.randint(1,20)
     BD = random.randint(1,20)
@@ -133,6 +236,7 @@ def puller(t):
     bd20 = os.path.join(Images, createD20img(BD,'b'))
     td10 = os.path.join(Images, createD10img(grade,'t'))
     sd10 = os.path.join(Images, createD10img(grade,'s'))
+    #tmp = createCardImg(mon[0], g, holo, t)
     tmp = combineImgs(gd20, bd20, td10, sd10)
     combine = discord.File(tmp)
     return [mon, g, holo, v, combine, CR]

@@ -20,20 +20,27 @@ with open('config.yml', 'r') as f:
      CONFIG  = yaml.safe_load(f)
 
 
+intents = discord.Intents.default()
+intents.members = True
 Collections = "/home/bramsel/pybot/collections/"
 Images = "/home/bramsel/pybot/images/"
-URL = " https://www.moorednd.com"
+URL = " https://www.moorednd.com/satchemon"
 
-bot = discord.Bot()
+bot = discord.Bot(intents=intents)
 
 def perm(ctx):
     return ctx.author.id == 1214255387193245726 or ctx.author.id == 257535802223886339
 
-@bot.event
-async def on_ready():
-    leaderboard.start()
-    roles.start()
-    print(f"{bot.user} is ready and online!")
+FF_LIST = [1214255387193245726,
+           587093342102224917,
+           693204053546500117,
+           257535802223886339]
+
+#@bot.event
+#async def on_ready():
+#    leaderboard.start()
+#    roles.start()
+#    print(f"{bot.user} is ready and online!")
 
 @bot.slash_command(name = "gold", description = "See how much gold you have")
 async def gold(ctx):
@@ -161,7 +168,7 @@ async def promo(ctx,promo):
                 return
             else:
                 pTracker(uid, res[6])
-                if res[0] == 0:
+                if res[0] == -1:
                     giveGold(ctx.author.id, res[2])
                     response = "You have been given {} gold".format(res[2])
                     await ctx.respond(response, ephemeral=True)
@@ -176,6 +183,27 @@ async def promo(ctx,promo):
         response = 'Invalid Promo'
         await ctx.respond(response, ephemeral=True)
         return
+
+#async def sponsor(ctx):
+#    if ctx.author.id in FF_LIST:
+#        #return
+#        pass
+#    if random.randint(1,2) == 1:
+#        uid = getUserID(ctx.author.id)
+#        mon = random.choice(getSponsors())
+#        grade = random.randint(1,100)
+#        g = 0
+#        while grade > GradeList[g]:
+#            g += 1
+#        g += 5
+#        v = round(2000 * ValueMulti[g-5] * 2,3)
+#        collectMon(uid, mon[0], g, 1, v, datetime.now())
+#        tmp = createCardImg(res[3], g, 1, 'Item')
+#        resp = '''
+#        Congratulations is in order to {} from @everyone here for being the first adventurer to uncover the legendary Dungeon Alchemist sponsor card. As a reward for your bold fortune {}, you've’ve earned a FREE copy of Dungeon Alchemist, the 3D generative mapmaking tool that brings imagination to life!
+#
+#        While the event has now ended, your collections may forever grow! Continue to look out for the legendary Dungeon Alchemist card in every pack and keep an eye out for new cards in the future. Happy hunting everyone!'''
+#        await ctx.respond(resp.format(ctx.author.name,ctx.author.name), file=discord.File(tmp)) 
 
 @bot.slash_command(name = "pull", description = "Pull a Card")
 async def pull(ctx):
@@ -214,21 +242,21 @@ async def pull(ctx):
     await ctx.respond(resp, view=tmpview, ephemeral=True)
     return
 
-@tasks.loop(minutes=10)
-async def leaderboard():
-    lc = bot.get_channel(int(getOption('leaderchannel')))
-    res = mostValuableCollection() 
-    c = createLeader(res,'c')
-    await lc.send('', file=c, delete_after=600)
-    res = getBestCards()
-    at = createLeader(res[0],'at')
-    await lc.send('', file=at, delete_after=600)
-    m = createLeader(res[1],'m')
-    await lc.send('', file=m, delete_after=600)
-    d7 = createLeader(res[2],'d7')
-    await lc.send('', file=d7, delete_after=600)
-    t = createLeader(res[3],'t')
-    await lc.send('', file=t, delete_after=600)
+#@tasks.loop(minutes=10)
+#async def leaderboard():
+#    lc = bot.get_channel(int(getOption('leaderchannel')))
+#    res = mostValuableCollection() 
+#    c = createLeader(res,'c')
+#    await lc.send('', file=c, delete_after=600)
+#    res = getBestCards()
+#    at = createLeader(res[0],'at')
+#    await lc.send('', file=at, delete_after=600)
+#    m = createLeader(res[1],'m')
+#    await lc.send('', file=m, delete_after=600)
+#    d7 = createLeader(res[2],'d7')
+#    await lc.send('', file=d7, delete_after=600)
+#    t = createLeader(res[3],'t')
+#    await lc.send('', file=t, delete_after=600)
     
 
 @tasks.loop(minutes=10)
@@ -274,9 +302,11 @@ async def roles():
     for ms in mms:
         if ms not in tmpmms:
             await delRole(ms, 'Major Moneybags')
+            delMMS(cs)
     for cs in css:
         if cs not in tmpcss:
             await delRole(cs, 'Corporate Shill')
+            delMMS(cs)
 
 
             
@@ -288,6 +318,50 @@ def flattenRoles(cs):
             tmp[c[0]] = []
         tmp[c[0]] += [c[1]]
     return tmp
+
+
+
+@bot.slash_command(name = "rolegold", description = "ADMIN ONLY COMMAND to stop event")
+@discord.ext.commands.check(perm)
+async def roleGold(ctx,gold, role: discord.Role):
+    ctx.guild.fetch_members(limit=None)
+    for member in role.members:
+        giveGold(str(member.id), float(gold))
+    await ctx.respond('Gold Given', ephemeral=True)
+
+
+
+@bot.slash_command(name = "giveaway", description = "giveaway command")
+async def giveaway(ctx, username):
+    uid = getUserID(ctx.author.id)
+    if uid is None:
+        user = ctx.author.name
+        createUser(user,ctx.author.id)
+        uid = getUserID(ctx.author.id)
+    if hasYT(uid) or hasTT(uid):
+        tmpview = discord.ui.View(timeout=60)
+        tmpview.add_item(tt_button(ctx,username))
+        tmpview.add_item(yt_button(ctx,username))
+        msg = '''
+        Welcome to the **Dungeon Alchemist giveaway** friend! Here's a quick summary of the rules:
+        Participants may enter once with a TikTok account username **and** once with a YouTube account username - meaning participants may enter a total of two times.
+        To qualify for the reward entering with a:
+        A) TikTok username-
+           1) Follow @MooreDnD on TikTok
+           2) Follow @DungeonAlchemist on TikTok
+        B) YouTube Username-
+           1) Subscribe to @MooreDnD on YouTube
+           2) Subscribe to @DungeonAlchemist on YouTube
+        The winner must be following or subscribed to both accounts at the time of the drawing (**Wednesday, May 28th at 8:45 P.M. EST**) to be eligible, otherwise a new winner will be selected.
+        ...and that's it! Now to enter, select what platform the username you entered is attributed to below (don't worry, you can do this process again for the other platform):
+        '''
+
+        resp = "Enter giveaway with username {}".format(username)
+        await ctx.respond(msg, view=tmpview, ephemeral=True)
+        return
+    else:
+        await ctx.respond("No More Entries", ephemeral=True)        
+
 
 
 @bot.slash_command(name = "endevent", description = "ADMIN ONLY COMMAND to stop event")
@@ -397,6 +471,7 @@ async def buypulls(ctx):
     await ctx.respond(resp, view=tmpview, ephemeral=True)
     return
         
+
 
 @bot.slash_command(name = "sell", description = "Sell your cards")
 async def sell(ctx, cards):
