@@ -245,7 +245,7 @@ async def pull(ctx):
 #@tasks.loop(minutes=10)
 #async def leaderboard():
 #    lc = bot.get_channel(int(getOption('leaderchannel')))
-#    res = mostValuableCollection() 
+#    res = mostValuableCollection()
 #    c = createLeader(res,'c')
 #    await lc.send('', file=c, delete_after=600)
 #    res = getBestCards()
@@ -360,7 +360,7 @@ async def giveaway(ctx, username):
         await ctx.respond(msg, view=tmpview, ephemeral=True)
         return
     else:
-        await ctx.respond("No More Entries", ephemeral=True)        
+        await ctx.respond("No More Entries", ephemeral=True)
 
 
 
