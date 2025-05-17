@@ -167,7 +167,6 @@ def createCardImg(cid, g, h, t):
     if not os.path.isfile(genImg) or True:
         baseImg = os.path.join(Images, 'cards', 'Cards', '{}.png'.format(cid))
         gImg = os.path.join(Images, 'cards', 'Grade', 'G{}_{}.png'.format(g,gsub))
-        print(gImg)
         cImg = ''
         if t == 'Monsters':
             cImg = os.path.join(Images, 'cards', 'Color', '{}.png'.format('Red'))
@@ -191,7 +190,7 @@ def createCardImg(cid, g, h, t):
             if hrot:
                 himg = himg.transpose(Image.Transpose.ROTATE_180)
             himg = himg.convert("RGBA")
-            cimg.paste(himg,(0,0),himg)
+            cimg = Image.alpha_composite(cimg, himg)
 
         if gx:
             gimg = gimg.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
@@ -200,8 +199,8 @@ def createCardImg(cid, g, h, t):
         if grot:
             gimg = gimg.transpose(Image.Transpose.ROTATE_180)
         gimg = gimg.convert("RGBA")
-        cimg.paste(img,(0,0),img)
-        cimg.paste(gimg,(0,0),gimg)
+        cimg = Image.alpha_composite(cimg, img)
+        cimg = Image.alpha_composite(cimg, gimg)
         cimg.save(genImg)
     return genImg
 
