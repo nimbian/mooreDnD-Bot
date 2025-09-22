@@ -36,11 +36,11 @@ FF_LIST = [1214255387193245726,
            693204053546500117,
            257535802223886339]
 
-#@bot.event
-#async def on_ready():
-#    leaderboard.start()
-#    roles.start()
-#    print(f"{bot.user} is ready and online!")
+@bot.event
+async def on_ready():
+    leaderboard.start()
+    roles.start()
+    print(f"{bot.user} is ready and online!")
 
 @bot.slash_command(name = "gold", description = "See how much gold you have")
 async def gold(ctx):
@@ -242,27 +242,29 @@ async def pull(ctx):
     await ctx.respond(resp, view=tmpview, ephemeral=True)
     return
 
-#@tasks.loop(minutes=10)
-#async def leaderboard():
-#    lc = bot.get_channel(int(getOption('leaderchannel')))
-#    res = mostValuableCollection()
-#    c = createLeader(res,'c')
-#    await lc.send('', file=c, delete_after=600)
-#    res = getBestCards()
-#    at = createLeader(res[0],'at')
-#    await lc.send('', file=at, delete_after=600)
-#    m = createLeader(res[1],'m')
-#    await lc.send('', file=m, delete_after=600)
-#    d7 = createLeader(res[2],'d7')
-#    await lc.send('', file=d7, delete_after=600)
-#    t = createLeader(res[3],'t')
-#    await lc.send('', file=t, delete_after=600)
+@tasks.loop(minutes=10)
+async def leaderboard():
+    lc = bot.get_channel(int(getOption('leaderchannel')))
+    res = mostValuableCollection()
+    c = createLeader(res,'c')
+    await lc.send('', file=c, delete_after=600)
+    res = getBestCards()
+    at = createLeader(res[0],'at')
+    await lc.send('', file=at, delete_after=600)
+    m = createLeader(res[1],'m')
+    await lc.send('', file=m, delete_after=600)
+    d7 = createLeader(res[2],'d7')
+    await lc.send('', file=d7, delete_after=600)
+    t = createLeader(res[3],'t')
+    await lc.send('', file=t, delete_after=600)
     
 
 @tasks.loop(minutes=10)
 async def roles():
+    #print('test')
     sets = hasSets()
     cs = flattenRoles(getCompletedSets())
+    #print(cs)
     for s in sets:
         for did in sets[s]:
             try:
@@ -273,7 +275,8 @@ async def roles():
                 else:
                     addToCS(did, s)
                     await addRole(did, s)
-            except:
+            except Exception as e:
+                #print(e)
                 pass
 
     for c in cs:
@@ -314,6 +317,7 @@ async def roles():
 def flattenRoles(cs):
     tmp = {}
     for c in cs:
+        #print(c)
         if c[0] not in tmp:
             tmp[c[0]] = []
         tmp[c[0]] += [c[1]]
@@ -417,6 +421,9 @@ async def event(ctx, value=None):
 async def shop(ctx, shopcardid=None):
     if ctx.author.bot:
         return
+    resp = '''As you approach the Enchanted Sleeve, you see ruin and disaster. The shop is in shambles, the atmosphere is quiet, and the broken shelves sit empty...'''
+    await ctx.respond(resp, ephemeral=True)
+    return
     if not shopcardid:
         res = shopCards()
         tmp = []
@@ -477,6 +484,9 @@ async def buypulls(ctx):
 async def sell(ctx, cards):
     if ctx.author.bot:
         return
+    resp = '''As you approach the Enchanted Sleeve, you see ruin and disaster. The shop is in shambles, the atmosphere is quiet, and the broken shelves sit empty...'''
+    await ctx.respond(resp, ephemeral=True)
+    return
     uid = getUserID(ctx.author.id)
     card = set(cards.split(','))
     for c in card:

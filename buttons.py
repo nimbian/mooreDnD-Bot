@@ -602,3 +602,43 @@ class tt_button(discord.ui.Button):
         '''
         await interaction.response.send_message(msg, view=tmpview, ephemeral=True)
         return
+
+
+class d_button(discord.ui.Button):
+
+    def __init__(self, uid, card, bot, tv):
+        super().__init__(label="Confirm!", style=discord.ButtonStyle.green)
+        self.uid = uid
+        self.card = card
+        self.bot = bot
+        self.tv = tv
+
+    async def on_timeout(self):
+        self.disable_all_items()
+
+
+    async def callback(self, interaction: discord.Interaction):
+
+        uid = self.uid
+        card = self.card
+        tv = self.tv
+        for c in card:
+            res = yourCard(c, uid)
+            if res is None:
+                await interaction.response.send_message("This is not your card(s)", ephemeral=True)
+                return
+
+        donateCards(uid, card)
+        tmp = []
+        for c in card:
+            t = getCard(c)
+            tmp += [t]
+        out = t2a(
+                header=['Card','Grade','Holo','Value'],
+                body = tmp,
+                style = PresetStyle.thin_compact
+        )
+        user = getUserName(uid)[0]
+        resp = f"@{user} sacrificed these cards for {tv} essence```\n{out}\n```"
+        await interaction.response.send_message(resp)
+        return

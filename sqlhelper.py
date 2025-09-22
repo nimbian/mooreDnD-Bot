@@ -8,6 +8,20 @@ def getUserName(did):
         cur.execute("SELECT name from users where did = %s", (did,))
         return cur.fetchone()
 
+def donateCards(uid, cards):
+    power = 0
+    for c in cards:
+        removeTradesWithCard(c)
+    for c in cards:
+        with mydb.db_cursor() as cur:
+            cur.execute("select value from collections where collections.rwid = %s", (c,))
+            power += cur.fetchone()[0]
+            cur.execute("update collections set uid = 0 where rwid = %s", (c,))
+            cur.execute("INSERT into donations(uid, cid) values(%s,%s)", (uid, c))
+    with mydb.db_cursor() as cur:
+        cur.execute("update power set power = power + %s", (power,))
+    return
+
 def sellCards(uid, cards):
     for c in cards:
         removeTradesWithCard(c)
@@ -52,7 +66,7 @@ def usePull(did):
 
 def createUser(user, did):
     with mydb.db_cursor() as cur:
-        cur.execute("INSERT into users(name,did,gp,pulls,es,entries) values (%s,%s,0,3,1,0)",(user,did))
+        cur.execute("INSERT into users(name,did,gp,pulls,yt,tt) values (%s,%s,0,3,1,1)",(user,did))
     return
 
 def getUserID(user):
@@ -131,7 +145,7 @@ def collectMon(uid, monid, grade, holo, value, date):
 
 def getMonsFromCR(CR, t):
     with mydb.db_cursor() as cur:
-        cur.execute("SELECT rwid,name,exp from mons where CR = %s and exp != 'Promo' and exp != 'Spons' and class = %s",(CR,t))
+        cur.execute("SELECT rwid,name,exp from mons where CR = %s and exp != 'Promo' and exp != 'SPONS' and class = %s",(CR,t))
         return cur.fetchall()
 
 def getEvColValue(did):
@@ -510,7 +524,7 @@ def hasSets():
                         " in (select monid from cardsinsets where setid = '%s') and users.rwid > 0 group by (did)", (s[0],))
             tmp = cur.fetchall()
             for t in tmp:
-                if s[1] == t[1]:
+                if int(s[1]) == int(t[1]):
                     out[s[2]].append(t[0])
         return out
 

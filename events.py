@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timezone, time
 from sqlhelper import *
 from pullhelper import *
+from buttons import *
 
 async def mp(ctx, uid, member):
     await ctx.defer()
@@ -88,6 +89,34 @@ async def raid(ctx, uid, member):
         await ctx.followup.send('You have dealt {} damage to {} and has {} hp remaining'.format(getEvColValue(ctx.author.id)[0], name, round(tothp - tmp,3)), ephemeral=True)
     
 
+async def attack(ctx, cards, uid, member):
+    if ctx.author.bot:
+        return
+    card = set(cards.split(','))
+    for c in card:
+        res = yourCard(c, ctx.author.id)
+        if res is None:
+            await ctx.respond("This is not your card(s)", ephemeral=True)
+            return
+    tmpview = discord.ui.View(timeout=60)
+    cs = list(card)
+    tmp = []
+    tv = 0
+    for c in cs:
+        t = getCard(c)
+        tmp += [t]
+        tv += t[3]
+
+    output = t2a(
+        header=["Card", "Grade", "Holo", "Value"],
+        body = tmp,
+        style = PresetStyle.thin_compact
+    )
+    tv = round(tv,3)
+    tmpview.add_item(d_button(ctx.author.id, card, ctx.author.bot, tv))
+    resp = f"Sacrifice these cards for {tv} essence?:\n```\n{output}\n```"
+    await ctx.respond(resp, view=tmpview, ephemeral=True)
+ 
 
 async def doEvent(ctx, value=None):
     ev = getActiveEvent()
@@ -104,6 +133,11 @@ async def doEvent(ctx, value=None):
         await pir(ctx, uid, member)
     elif e == 'raid':
         await raid(ctx, uid, member)
+    elif e == 'attack':
+        if value:
+	        await attack(ctx, value, uid, member)
+        else:
+            await ctx.respond('Need to cards', ephemeral=True)
     else:
         await ctx.respond('No current event', ephemeral=True)
 
@@ -118,6 +152,9 @@ async def pirStatus(ctx, uid, member):
          await ctx.respond('You\'ve lost your way' , ephemeral=True)
          return
     await ctx.respond('You are {}ft away from the treasure.'.format(round(int(getOption('pir'))- cur,3)), ephemeral=True)
+
+
+
 
 async def doEventStatus(ctx, value=None):
     ev = getActiveEvent()
