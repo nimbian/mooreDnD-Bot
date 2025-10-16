@@ -14,6 +14,7 @@ from pullhelper import *
 from imgStuff import *
 from events import *
 from trades import *
+from consts import *
 import yaml
 
 with open('config.yml', 'r') as f:
@@ -418,13 +419,14 @@ async def event(ctx, value=None):
     await doEventStatus(ctx, value)
 
 @bot.slash_command(name = "shop", description = "Buy Cards from shop")
-async def shop(ctx, shopcardid=None):
+async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
     if ctx.author.bot:
         return
-    resp = '''As you approach the Enchanted Sleeve, you see ruin and disaster. The shop is in shambles, the atmosphere is quiet, and the broken shelves sit empty...'''
-    await ctx.respond(resp, ephemeral=True)
-    return
-    if not shopcardid:
+    if shopclearanceid and shopcollectioncards:
+        resp = "Can't buy clearance and collection at the same time"
+        await ctx.respond(resp, ephemeral=True)
+        return
+    if not shopclearanceid and not shopcollectioncards:
         res = shopCards()
         tmp = []
         for r in res:
@@ -434,11 +436,12 @@ async def shop(ctx, shopcardid=None):
             body = tmp,
             style = PresetStyle.thin_compact
         )
-        head = "Current stock:"
+        head = "Welcome to the CLEARANCE section of the Enchanted Sleeve! The cards below are only marked up 10% of their original value. You can peruse our ENTIRE selection of cards here - {}\n".format(URL + '/user/0')
         out = head + f"```\n{output}\n```"
         await ctx.respond(out, ephemeral=True)
-    else:
-        card = getShopCard(shopcardid)
+        return
+    elif shopclearanceid:
+        card = getShopCard(shopclearanceid)
         if not card:
             await ctx.respond("No card for that", ephemeral=True)
             return
@@ -454,9 +457,50 @@ async def shop(ctx, shopcardid=None):
         )
         out = f"```\n{output}\n```"
         tmpview = discord.ui.View(timeout=60)
-        tmpview.add_item(bs_button(ctx.author.id, shopcardid, bot))
-        resp = f"Buy this card ?:\n```\n{output}\n```"
+        tmpview.add_item(bs_button(ctx.author.id, shopclearanceid, bot))
+        resp = f"Purchase card(s)?\n```\n{output}\n```"
         await ctx.respond(resp, view=tmpview, ephemeral=True)
+        return
+    elif shopcollectioncards:
+        card = set(shopcollectioncards.split(','))
+        if len(card) > 5:
+            await ctx.respond("Can't buy more than 5 cards at a time", ephemeral=True)
+            return
+        for c in card:
+            res = yourCard(c, 0)
+            if res is None:
+                await ctx.respond("This is not a shop card(s)", ephemeral=True)
+                return
+        cs = list(card)
+        tmp = []
+        tv = 0
+        for c in cs:
+            t = getCard(c)
+            tmp.append([t[0],t[1],t[2], t[3]])
+            tv += t[3]
+        output = t2a(
+                header=["Card", "Grade", "Holo", "Value"],
+                body = tmp,
+                style = PresetStyle.thin_compact
+                )
+        tv = round(tv,3)
+        b_b = buy_button(ctx.author.id, cs, bot)
+        h_b = haggle_buy_button(ctx.author.id, cs, bot)
+        gp = float(getGold(ctx.author.id))
+        if gp < round(float(tv) * 1.5,3):
+            b_b.disabled = True
+        if gp < round(float(tv) * 1.7,3):
+            h_b.disabled = True
+        tmpview = discord.ui.View(timeout=60)
+        tmpview.add_item(b_b)
+        tmpview.add_item(h_b)
+        tmpv =  round(float(tv) * 1.5,3)
+        resp = f"\n```\n{output}\n```Purchase card(s) for a 50% markup of {tmpv} GP?\n\nOR; attempt to haggle for a lower price, but run the risk of an increase instead"
+        await ctx.respond(resp, view=tmpview, ephemeral=True)
+
+
+
+
 
 @bot.slash_command(name = "buypulls", description = "Buy a pack for cards")
 async def buypulls(ctx):
@@ -484,9 +528,6 @@ async def buypulls(ctx):
 async def sell(ctx, cards):
     if ctx.author.bot:
         return
-    resp = '''As you approach the Enchanted Sleeve, you see ruin and disaster. The shop is in shambles, the atmosphere is quiet, and the broken shelves sit empty...'''
-    await ctx.respond(resp, ephemeral=True)
-    return
     uid = getUserID(ctx.author.id)
     card = set(cards.split(','))
     for c in card:
@@ -496,23 +537,42 @@ async def sell(ctx, cards):
             return
     tmpview = discord.ui.View(timeout=60)
     tmpview.add_item(s_button(ctx.author.id, card, bot))
+    tmpview.add_item(h_s_button(ctx.author.id, card, bot))
     cs = list(card)
     tmp = []
     tv = 0
     for c in cs:
         t = getCard(c)
-        tmp += [t]
-        tv += t[3]
+        tmp.append([t[0],t[1],t[2], t[3]])
+        tv += round(float(t[3]) * .7,3)
 
     output = t2a(
         header=["Card", "Grade", "Holo", "Value"],
         body = tmp,
         style = PresetStyle.thin_compact
     )
-    tv = round(tv,3) 
-    resp = f"Sell these for {tv}?:\n```\n{output}\n```"
+    resp = f"```\n{output}\n```Sell card(s) for 70% of the total value at {tv} GP?:\n\nOR; attempt to haggle for a higher price, but run the risk of a decrease instead"
     await ctx.respond(resp, view=tmpview, ephemeral=True)
 
+@bot.slash_command(name = "lotto", description = "Buy Lottery Tickets")
+async def lott(ctx, howmanytickets=None):
+    if ctx.author.bot:
+        return
+    if not howmanytickets:
+        resp = desc.LOTTO.format(jackpot())
+        await ctx.respond(resp, ephemeral=True)
+        return
+    gp = float(getGold(ctx.author.id))
+    amount = int(howmanytickets)
+    if amount > 10000:
+        await ctx.respond("Can't buy that many tickets", ephemeral=True)
+        return
+    if gp < float(amount * 25):
+        await ctx.respond('Not enough GP for that amount of tickets', ephemeral=True)
+        return
+    generate_lotto(ctx.author.id, amount)
+    spendGold(ctx.author.id, float(amount * 25))
+    await ctx.respond('{} tickets given'.format(amount), ephemeral=True)
 
 async def addRole(did, role):
     guild = await bot.fetch_guild(int(getOption('guild')))

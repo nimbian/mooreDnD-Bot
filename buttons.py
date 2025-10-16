@@ -1,5 +1,6 @@
 import discord
 from sqlhelper import *
+from consts import *
 from datetime import datetime, timezone
 from pullhelper import *
 from audit import *
@@ -160,7 +161,7 @@ class c_button(discord.ui.Button):
 class s_button(discord.ui.Button):
 
     def __init__(self, uid, card, bot):
-        super().__init__(label="Confirm!", style=discord.ButtonStyle.green)
+        super().__init__(label="Sell", style=discord.ButtonStyle.green)
         self.uid = uid
         self.card = card
         self.bot = bot
@@ -181,20 +182,80 @@ class s_button(discord.ui.Button):
 
         sellCards(uid, card)
         tmp = []
+        tv = 0
         for c in card:
             t = getCard(c)
-            tmp += [t]
+            tmp.append([t[0],t[1],t[2], round(float(t[3]) * .7,3)])
+            tv +=  round(float(t[3]) * .7,3)
         out = t2a(
                 header=['Card','Grade','Holo','Value'],
                 body = tmp,
                 style = PresetStyle.thin_compact
         )
+        spendGold(self.uid, tv * -1)
         user = getUserName(uid)[0]
         resp = f"{user} sold these cards ```\n{out}\n```"
-        await interaction.response.send_message("Cards Sold", ephemeral=True)
+        await interaction.response.send_message('"{}"\nCard(s) Sold for {} GP"'.format(random.choice(haggle.SELL), tv), ephemeral=True)
         await auditPost(self.bot,resp,'sell')
         return
 
+class h_s_button(discord.ui.Button):
+
+    def __init__(self, uid, card, bot):
+        super().__init__(label="Haggle! *Decision is final!", style=discord.ButtonStyle.blurple)
+        self.uid = uid
+        self.card = card
+        self.bot = bot
+
+    async def on_timeout(self):
+        self.disable_all_items()
+
+
+    async def callback(self, interaction: discord.Interaction):
+
+        uid = self.uid
+        card = self.card
+        for c in card:
+            res = yourCard(c, uid)
+            if res is None:
+                await interaction.response.send_message("This is not your card(s)", ephemeral=True)
+                return
+
+        sellCards(uid, card)
+        tmp = []
+        tv = 0
+        for c in card:
+            t = getCard(c)
+            tmp += [t]
+            tv += t[3]
+        out = t2a(
+                header=['Card','Grade','Holo','Value'],
+                body = tmp,
+                style = PresetStyle.thin_compact
+        )
+        d20 = random.randint(1, 20)
+        if d20 == 1:
+            res = random.choice(haggle.SELL_TERRIBLE)
+            tv = round(float(tv) * .5,3)
+        elif d20 <= 8:
+            res = random.choice(haggle.SELL_BAD)
+            tv = round(float(tv) * .6,3)
+        elif d20 <= 12:
+            res = random.choice(haggle.SELL_EVEN)
+            tv = round(float(tv) * .7,3)
+        elif d20 <= 19:
+            res = random.choice(haggle.SELL_GOOD)
+            tv = round(float(tv) * .8,3)
+        else:
+            res = random.choice(haggle.SELL_GREAT)
+            tv = round(float(tv) * .9,3)
+
+        spendGold(self.uid, round(float(tv * -1),3))
+        user = getUserName(uid)[0]
+        resp = f"{user} sold these cards ```\n{out}\n```"
+        await interaction.response.send_message('"{}"\nYou rolled a {} on your persuasion check and sold the card(s) for {} GP'.format(res,d20,tv), ephemeral=True)
+        await auditPost(self.bot,resp,'sell')
+        return
 class bm_button(discord.ui.Button):
 	#TODO add protection
     def __init__(self, ctx, did, pulls, cost):
@@ -323,7 +384,7 @@ class bs_button(discord.ui.Button):
         spendGold(self.did, float(card[6]))
         delFromShop(self.sid, self.did)
         resp = '{} purchased {} from the shop'.format(getUserName(self.did)[0], card[2])
-        await interaction.response.send_message("Card Purchased!", ephemeral=True)
+        await interaction.response.send_message("Card(s) purchased!", ephemeral=True)
         await auditPost(self.bot,resp,'buy')
         return
 
@@ -641,4 +702,96 @@ class d_button(discord.ui.Button):
         user = getUserName(uid)[0]
         resp = f"@{user} sacrificed these cards for {tv} essence```\n{out}\n```"
         await interaction.response.send_message(resp)
+        return
+
+
+
+class buy_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, did, cids, bot):
+        super().__init__(label="Buy Now!", style=discord.ButtonStyle.green)
+        self.did = did
+        self.cids = cids
+        self.bot = bot
+        
+
+    async def callback(self, interaction: discord.Interaction):
+        gp = float(getGold(self.did))
+        card = set(self.cids)
+        for c in card:
+            res = yourCard(c, 0)
+            if res is None:
+                await ctx.respond("This is not a shop card(s)", ephemeral=True)
+                return
+        cs = list(card)
+        tv = 0
+        tmp = []
+        for c in cs:
+            t = getCard(c)
+            tmp += [t[0],t[1],t[2], float(t[3]) * 1.5]
+            tv += t[3]
+        tv = round(float(tv) * 1.5,3)
+        if gp < tv:
+            await ctx.respond('You do not have enough GP', ephemeral=True)
+            return
+        spendGold(self.did, tv)
+        buyCards(self.did, self.cids)
+
+        resp = '{} purchased {} from the shop'.format(getUserName(self.did)[0], tmp)
+        await interaction.response.send_message('"{}"\nCard(s) Purchased for {} GP'.format(random.choice(haggle.BUY),tv), ephemeral=True)
+        await auditPost(self.bot,resp,'buy')
+        return
+
+class haggle_buy_button(discord.ui.Button):
+	#TODO add protection
+    def __init__(self, did, cids, bot):
+        super().__init__(label="Haggle Now! *Decision is Final", style=discord.ButtonStyle.blurple)
+        self.did = did
+        self.cids = cids
+        self.bot = bot
+        
+
+    async def callback(self, interaction: discord.Interaction):
+        gp = float(getGold(self.did))
+        card = set(self.cids)
+        for c in card:
+            res = yourCard(c, 0)
+            if res is None:
+                await ctx.respond("This is not a shop card(s)", ephemeral=True)
+                return
+        cs = list(card)
+        tmp = []
+        tv = 0
+        for c in cs:
+            t = getCard(c)
+            tmp += [t[0],t[1],t[2], float(t[3]) * 1.5]
+            tv += t[3]
+        tv = round(tv,3)
+        if gp < round(float(tv) * 1.7,3):
+            await ctx.respond('You do not have enough GP', ephemeral=True)
+            return
+
+        d20 = random.randint(1, 20)
+        if d20 == 1:
+            res = random.choice(haggle.BUY_TERRIBLE)
+            tv = round(float(tv) * 1.7,3)
+        elif d20 <= 8:
+            res = random.choice(haggle.BUY_BAD)
+            tv = round(float(tv) * 1.6,3)
+        elif d20 <= 12:
+            res = random.choice(haggle.BUY_EVEN)
+            tv = round(float(tv) * 1.5,3)
+        elif d20 <= 19:
+            res = random.choice(haggle.BUY_GOOD)
+            tv = round(float(tv) * 1.4,3)
+        else:
+            res = random.choice(haggle.BUY_GREAT)
+            tv = round(float(tv) * 1.3,3)
+
+        spendGold(self.did, tv)
+        buyCards(self.did, self.cids)
+
+        resp = '{} purchased {} from the shop'.format(getUserName(self.did)[0], tmp)
+        await interaction.response.send_message('"{}"\nYou rolled a {} on your persuasion check and paid {} GP'.format(res,d20,tv), ephemeral=True)
+        await auditPost(self.bot,resp,'buy')
         return

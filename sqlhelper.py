@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+import random
 from os import path
 from table2ascii import table2ascii as t2a, PresetStyle
 import mydb
@@ -27,8 +28,6 @@ def sellCards(uid, cards):
         removeTradesWithCard(c)
     for c in cards:
         with mydb.db_cursor() as cur:
-            cur.execute("update users set gp = gp + (select value from collections where collections.rwid = %s)"+
-                        " where users.did = %s", (c, uid))
             cur.execute("update collections set uid = 0 where rwid = %s", (c,))
     return
 
@@ -560,5 +559,65 @@ def addTreasure(uid, t):
     with mydb.db_cursor() as cur:
         cur.execute("insert into eventTreasures values(%s,%s)",(uid,t))
     return
+
+def buyCards(did, cids):
+    with mydb.db_cursor() as cur:
+        for c in cids:
+            cur.execute("update collections set uid = (SELECT rwid from users where did = %s) where rwid = %s", (did, c))
+    return
+            
+def generate_lotto(did, amount):
+    with mydb.db_cursor() as cur:
+        tmp = random.sample(range(0,10000), amount)
+        for x in tmp:
+            ticket = ','.join(list("{:04d}".format(x)))
+            cur.execute("insert into lotto values(%s,%s)", (did, ticket))
+        return
+
+def jackpot():
+    with mydb.db_cursor() as cur:
+        cur.execute("SELECT * from jackpot")
+        return cur.fetchone()[0]
+
+def execute_lotto():
+    with mydb.db_cursor() as cur:
+        tmp = random.sample(range(0,10000), 1)
+        num = list("{:04d}".format(tmp[0]))
+        cur.execute("SELECT * FROM lotto")
+        tmp = cur.fetchall()
+        flag = False
+        for t in tmp:
+            matches = sum(c1 == c2 for c1, c2 in zip(num, t[1].split(',')))
+            if matches == 4:
+                flag = True
+                cur.execute("INSERT INTO jackpot_winners values (%s)", (t[0],))
+                print('match 4')
+            elif matches == 3:
+                amount = 2000
+                print('match 3')
+            elif matches == 2:
+                amount = 80
+                print('match 2')
+            elif matches == 1:
+                amount = 5
+                print('match 1')
+            if matches > 0 and matches != 4:
+                cur.execute("UPDATE users set gp = gp + %s where did = %s", (amount, t[0]))
+
+        if flag:
+            cur.execute("SELECT * from jackpot_winners")
+            winners = cur.fetchall()
+            c = len(winners)
+            jp = jackpot()
+            for w in winners:
+                cur.execute("UPDATE users set gp = gp + %s where did = %s", (jp / c, w[0]))
+            cur.execute("UPDATE jackpot set amount = 40000")
+        else:
+            add = len(tmp) * 2.5
+            cur.execute("UPDATE jackpot set amount = amount + %s", (add,))
+        cur.execute("DELETE FROM jackpot_winners")
+        cur.execute("DELETE FROM lotto")
+
+    
 
 
