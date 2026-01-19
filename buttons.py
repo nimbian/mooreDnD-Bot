@@ -548,7 +548,6 @@ class x_button(discord.ui.Button):
 
 async def giveawayEntries(sf, es, un, plat, roll):
     uid = getUserID(sf.ctx.author.id)
-    print(plat)
     if not uid:
         createUser(sf.ctx.author.id)
         uid = getUserID(sf.ctx.author.id)
@@ -766,7 +765,7 @@ class haggle_buy_button(discord.ui.Button):
             t = getCard(c)
             tmp += [t[0],t[1],t[2], float(t[3]) * 1.5]
             tv += t[3]
-        tv = round(tv,3)
+        tv = round(float(tv),3)
         if gp < round(float(tv) * 1.7,3):
             await ctx.respond('You do not have enough GP', ephemeral=True)
             return
@@ -795,3 +794,49 @@ class haggle_buy_button(discord.ui.Button):
         await interaction.response.send_message('"{}"\nYou rolled a {} on your persuasion check and paid {} GP'.format(res,d20,tv), ephemeral=True)
         await auditPost(self.bot,resp,'buy')
         return
+
+class wager_1_button(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="MooreDnD!", style=discord.ButtonStyle.green)
+
+    async def callback(self, interaction: discord.Interaction):
+        resolveWager(1)
+        await interaction.response.send_message('Wager resolved', ephemeral=True)
+
+class wager_2_button(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="Special Guest!", style=discord.ButtonStyle.blurple)
+
+    async def callback(self, interaction: discord.Interaction):
+        resolveWager(2)
+        await interaction.response.send_message('Wager resolved', ephemeral=True)
+
+class lotto_button(discord.ui.Button):
+    def __init__(self, uid, amount):
+        super().__init__(label="Confirm!", style=discord.ButtonStyle.green)
+        self.uid = uid
+        self.amount = amount
+
+    async def on_timeout(self):
+        self.disable_all_items()
+
+    async def callback(self, interaction: discord.Interaction):
+        generate_lotto(self.uid, self.amount)
+        spendGold(self.uid, float(self.amount * 25))
+        await interaction.respond('{} ticket(s) given'.format(self.amount), ephemeral=True)
+
+
+class wager_button(discord.ui.Button):
+    def __init__(self, uid, team, wager):
+        super().__init__(label="Confirm!", style=discord.ButtonStyle.green)
+        self.uid = uid
+        self.team = team
+        self.wager = wager
+
+    async def on_timeout(self):
+        self.disable_all_items()
+
+    async def callback(self, interaction: discord.Interaction):
+        addWager(self.uid, self.team, self.wager)
+        await interaction.respond('Wager placed for {} GP'.format(self.wager), ephemeral=True)
+

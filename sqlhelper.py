@@ -579,45 +579,87 @@ def jackpot():
         cur.execute("SELECT * from jackpot")
         return cur.fetchone()[0]
 
-def execute_lotto():
+async def execute_lotto(bot):
     with mydb.db_cursor() as cur:
-        tmp = random.sample(range(0,10000), 1)
-        num = list("{:04d}".format(tmp[0]))
-        cur.execute("SELECT * FROM lotto")
-        tmp = cur.fetchall()
-        flag = False
-        for t in tmp:
-            matches = sum(c1 == c2 for c1, c2 in zip(num, t[1].split(',')))
-            if matches == 4:
-                flag = True
-                cur.execute("INSERT INTO jackpot_winners values (%s)", (t[0],))
-                print('match 4')
-            elif matches == 3:
-                amount = 2000
-                print('match 3')
-            elif matches == 2:
-                amount = 80
-                print('match 2')
-            elif matches == 1:
-                amount = 5
-                print('match 1')
-            if matches > 0 and matches != 4:
-                cur.execute("UPDATE users set gp = gp + %s where did = %s", (amount, t[0]))
+        cur.execute("SELECT exec from exec_lotto")
+        exe = cur.fetchone()[0]
+        if exe:
+            tmp = random.sample(range(0,10000), 1)
+            num = list("{:04d}".format(tmp[0]))
+            cur.execute("SELECT * FROM lotto")
+            tmp = cur.fetchall()
+            d = dict()
+            flag = False
+            for t in tmp:
+                matches = sum(c1 == c2 for c1, c2 in zip(num, t[1].split(',')))
+                if matches == 4:
+                    flag = True
+                    cur.execute("INSERT INTO jackpot_winners values (%s)", (t[0],))
+                elif matches == 3:
+                    amount = 2000
+                elif matches == 2:
+                    amount = 80
+                elif matches == 1:
+                    amount = 5
+                if matches > 0 and matches != 4:
+                    cur.execute("UPDATE users set gp = gp + %s where did = %s", (amount, t[0]))
+                    if t[0] in d:
+                        d[t[0]] += amount
+                    else:
+                        d[t[0]] = amount
+            winners = []
+            if flag:
+                cur.execute("SELECT * from jackpot_winners")
+                winners = cur.fetchall()
+                c = len(winners)
+                jp = jackpot()
+                for w in winners:
+                    cur.execute("UPDATE users set gp = gp + %s where did = %s", (jp / c, w[0]))
+                cur.execute("UPDATE jackpot set amount = 40000")
+            else:
+                add = len(tmp) * 2.5
+                cur.execute("UPDATE jackpot set amount = amount + %s", (add,))
+            cur.execute("DELETE FROM jackpot_winners")
+            cur.execute("DELETE FROM lotto")
+            cur.execute("UPDATE exec_lotto set exec = FALSE")
+            lc = bot.get_channel(1088472464960532571)
+            await lc.send("The winning numbers were {}".format('-'.join(num)), delete_after=604700)
+            if flag:
+                jp_msg = "WE HAVE A WINNER\nThe following individual(s) have each won {}gp:\n".format(jp /c)
+                for w in winners:
+                    jp_msg += "{}\n".format(getUserName(w)[0], delete_after=604700)
+                await lc.send(jp_msg)
+            else:
+                await lc.send("There were no Jackpot Winners", delete_after=604700)
+            if d:
+                win_msg = "The following have won:\n"
+                for x in d:
+                    win_msg += "{} has won {}gp\n".format(getUserName(x)[0], d[x])
+                await lc.send(win_msg, delete_after=604700)
+            else:
+                await lc.send("No winners today", delete_after=604700)
 
-        if flag:
-            cur.execute("SELECT * from jackpot_winners")
-            winners = cur.fetchall()
-            c = len(winners)
-            jp = jackpot()
-            for w in winners:
-                cur.execute("UPDATE users set gp = gp + %s where did = %s", (jp / c, w[0]))
-            cur.execute("UPDATE jackpot set amount = 40000")
-        else:
-            add = len(tmp) * 2.5
-            cur.execute("UPDATE jackpot set amount = amount + %s", (add,))
-        cur.execute("DELETE FROM jackpot_winners")
-        cur.execute("DELETE FROM lotto")
-
+def update_lotto():
+    with mydb.db_cursor() as cur:
+        cur.execute("UPDATE exec_lotto set exec = TRUE")
     
+def addWager(uid, team, wager):
+    spendGold(uid, wager)
+    with mydb.db_cursor() as cur:
+        cur.execute("INSERT into wager values (%s, %s, %s)", (uid, team, wager))
+
+def resolveWager(team):
+    tmp = []
+    with mydb.db_cursor() as cur:
+        cur.execute("SELECT uid, wager FROM wager WHERE team = %s", (team,))
+        try:
+            tmp = cur.fetchall()
+        except:
+            pass
+        cur.execute("DELETE FROM wager")
+    for t in tmp:
+        spendGold(t[0], t[1] * -1.8)
+
+            
 
 

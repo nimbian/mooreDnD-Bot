@@ -41,6 +41,7 @@ FF_LIST = [1214255387193245726,
 async def on_ready():
     leaderboard.start()
     roles.start()
+    lotto.start()
     print(f"{bot.user} is ready and online!")
 
 @bot.slash_command(name = "gold", description = "See how much gold you have")
@@ -59,7 +60,7 @@ async def collection(ctx, user=None):
     if user:
         res = getCollection(user[2:-1])
         if res:
-            head += '{}\'s collection: {}/satchemon/user/{} '.format(URL,getUserName(user[2:-1])[0], user[2:-1])
+            head += '{}\'s collection: {}/{} '.format(URL,getUserName(user[2:-1])[0], user[2:-1])
         else:
             await ctx.respond('This user has no collection yet', ephemeral=True)
             return
@@ -262,10 +263,8 @@ async def leaderboard():
 
 @tasks.loop(minutes=10)
 async def roles():
-    #print('test')
     sets = hasSets()
     cs = flattenRoles(getCompletedSets())
-    #print(cs)
     for s in sets:
         for did in sets[s]:
             try:
@@ -277,7 +276,6 @@ async def roles():
                     addToCS(did, s)
                     await addRole(did, s)
             except Exception as e:
-                #print(e)
                 pass
 
     for c in cs:
@@ -318,7 +316,6 @@ async def roles():
 def flattenRoles(cs):
     tmp = {}
     for c in cs:
-        #print(c)
         if c[0] not in tmp:
             tmp[c[0]] = []
         tmp[c[0]] += [c[1]]
@@ -407,11 +404,54 @@ async def startEvent(ctx,event):
     activateEvent(event)
     await ctx.respond('Event started', ephemeral=True)
 
+@bot.slash_command(name = "resolvewager", description = "ADMIN ONLY COMMAND to resolve MMM wager")
+@discord.ext.commands.check(perm)
+async def resolveWager(ctx):
+    resp = "Which team won"
+    tmpview = discord.ui.View(timeout=60)
+    tmpview.add_item(wager_1_button())
+    tmpview.add_item(wager_2_button())
+    await ctx.respond(resp, view=tmpview, ephemeral=True)
 
 @bot.slash_command(name = "event", description = "Command to participate in current event")
 @discord.ext.commands.cooldown(100,1, type=discord.ext.commands.BucketType.user)
 async def event(ctx, value=None):
     await doEvent(ctx, value)
+
+
+@bot.slash_command(name = "wager", description = "Command to wager on the Midweek Monster Mash")
+async def wager(ctx, moorednd=0, specialguest=0):
+    team1 = moorednd
+    team2 = specialguest
+    if ctx.author.bot:
+        return
+    uid = ctx.author.id
+    gp = getGold(uid)
+    team1 = float(team1)
+    team2 = float(team2)
+    if gp < team1 or gp < team2:
+        resp = "Not enough gp to wager that much"
+        await ctx.respond(resp, ephemeral=True)
+        return
+    if not team1 and not team2:
+        resp = "Place a bet on a team for the Midweek Monster Mash. If the team you chose wins, you’ll receive 1.8 times your wager! If the team you chose loses, you lose it all…"
+        await ctx.respond(resp, ephemeral=True)
+        return
+    if team1 and team2:
+        resp = "Can't wager on both teams at the same time"
+        await ctx.respond(resp, ephemeral=True)
+        return
+    tmpview = discord.ui.View(timeout=60)
+    if team1:
+        but = wager_button(ctx.author.id, 1, team1)
+        resp = "Would you like to wager {} GP on MooreDnD?".format(team1)
+    else:
+        but = wager_button(ctx.author.id, 2, team2)
+        resp = "Would you like to wager {} GP on the special guest of the week?".format(team2)
+    tmpview.add_item(but)
+    await ctx.respond(resp, view=tmpview, ephemeral=True)
+    return
+
 
 
 @bot.slash_command(name = "eventstatus", description = "Command to get status of event")
@@ -483,7 +523,7 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
                 body = tmp,
                 style = PresetStyle.thin_compact
                 )
-        tv = round(tv,3)
+        tv = round(float(tv),3)
         b_b = buy_button(ctx.author.id, cs, bot)
         h_b = haggle_buy_button(ctx.author.id, cs, bot)
         gp = float(getGold(ctx.author.id))
@@ -570,9 +610,10 @@ async def lott(ctx, howmanytickets=None):
     if gp < float(amount * 25):
         await ctx.respond('Not enough GP for that amount of tickets', ephemeral=True)
         return
-    generate_lotto(ctx.author.id, amount)
-    spendGold(ctx.author.id, float(amount * 25))
-    await ctx.respond('{} tickets given'.format(amount), ephemeral=True)
+    resp = 'spend {}gp on {} lotto ticket(s)'.format(amount * 25, amount)
+    tmpview = discord.ui.View(timeout=30)
+    tmpview.add_item(lotto_button(ctx.author.id, amount))
+    await ctx.respond(resp, view=tmpview, ephemeral=True)
 
 async def addRole(did, role):
     guild = await bot.fetch_guild(int(getOption('guild')))
@@ -629,6 +670,10 @@ async def help(ctx):
         if 'ADMIN' not in c.description:
             embed.add_field(name='/{}'.format(c.name), value=c.description, inline=False)
     await ctx.respond(embed=embed, ephemeral=True)
+
+@tasks.loop(minutes=1)
+async def lotto():
+    await execute_lotto(bot)
 
 
 bot.run(CONFIG['bot']['token'])
