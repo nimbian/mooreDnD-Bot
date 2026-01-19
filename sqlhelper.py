@@ -622,7 +622,7 @@ async def execute_lotto(bot):
             cur.execute("DELETE FROM jackpot_winners")
             cur.execute("DELETE FROM lotto")
             cur.execute("UPDATE exec_lotto set exec = FALSE")
-            lc = bot.get_channel(1088472464960532571)
+            lc = bot.get_channel(int(getOption('lottoChannel')))
             await lc.send("The winning numbers were {}".format('-'.join(num)), delete_after=604700)
             if flag:
                 jp_msg = "WE HAVE A WINNER\nThe following individual(s) have each won {}gp:\n".format(jp /c)
