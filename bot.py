@@ -240,7 +240,7 @@ async def pull(ctx):
     tmpview.add_item(pi_button(ctx, ctx.author.id, pulls))
     tmpview.add_item(pl_button(ctx, ctx.author.id, pulls))
     tmpview.add_item(pr_button(ctx, ctx.author.id, pulls))
-    resp = "Use a token for {} cards?".format(pulls)
+    resp = "Use a token for {} cards? You have {} pull(s)".format(pulls, ps)
     await ctx.respond(resp, view=tmpview, ephemeral=True)
     return
 

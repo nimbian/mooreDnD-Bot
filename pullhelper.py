@@ -36,7 +36,7 @@ async def getDID(user):
 async def sponsor(ctx):
     #if ctx.author.id in FF_LIST:
     #    return
-    if random.randint(1,100) == 1:
+    if random.randint(1,200) == 1:
         uid = getUserID(ctx.author.id)
         mon = random.choice(getSponsors())
         grade = random.randint(1,100)
@@ -44,15 +44,15 @@ async def sponsor(ctx):
         while grade > GradeList[g]:
             g += 1
         g += 5
-        v = round(2000 * ValueMulti[g-5] * 2,3)
+        v = round(2000 * ValueMulti[g-5],3)
         collectMon(uid, mon[0], g, 1, v, datetime.now())
         tmp = createCardImg(mon[0], 10, 1, 'Item')
         #resp = '''
         #Congratulations is in order to {} from @everyone here for being the first adventurer to uncover the legendary Dungeon Alchemist sponsor card. As a reward for your bold fortune {}, you've’ve earned a FREE copy of Dungeon Alchemist, the 3D generative mapmaking tool that brings imagination to life!
 
 #While the event has now ended, your collections may forever grow! Continue to look out for the legendary Dungeon Alchemist card in every pack and keep an eye out for new cards in the future. Happy hunting everyone!'''
-        resp = '''{} pulled a bonus sponsor card'''
-        await ctx.respond(resp.format(ctx.author.name.replace('_','\_').replace('*','\*')), file=discord.File(tmp))
+        resp = '''{} pulled a bonus sponsor card worth {} GP!'''
+        await ctx.respond(resp.format(ctx.author.name.replace('_','\_').replace('*','\*'), v), file=discord.File(tmp))
 
 
 
