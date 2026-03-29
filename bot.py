@@ -476,7 +476,7 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
             body = tmp,
             style = PresetStyle.thin_compact
         )
-        head = "Welcome to the CLEARANCE section of the Enchanted Sleeve! The cards below are only marked up 10% of their original value. You can peruse our ENTIRE selection of cards here - {}\n".format(URL + '/user/0')
+        head = "Welcome to Jesster's Underground Trading Hub, undercutting the greedy shopkeeper if you insist on patronizing the man his wares can be found at - {}\n".format(URL + '/user/0')
         out = head + f"```\n{output}\n```"
         await ctx.respond(out, ephemeral=True)
         return
