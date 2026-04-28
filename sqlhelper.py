@@ -668,6 +668,5 @@ def getHere():
 def delHere():
     with mydb.db_cursor() as cur:
         cur.execute("delete from checkin")
-        return cur.fetchall()
 
 
