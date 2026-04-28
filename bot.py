@@ -678,7 +678,7 @@ async def lotto():
 
 @bot.slash_command(name = "gethere", description = "Get here users")
 @discord.ext.commands.check(perm)
-async def gethere(ctx, howmanytickets=None):
+async def gethere(ctx):
     if ctx.author.bot:
         return
     res = getHere()
@@ -697,10 +697,10 @@ async def gethere(ctx, howmanytickets=None):
 
 @bot.slash_command(name = "delhere", description = "Get here users")
 @discord.ext.commands.check(perm)
-async def delhere(ctx, howmanytickets=None):
+async def delhere(ctx):
     if ctx.author.bot:
         return
-    res = delHere()
+    delHere()
     await ctx.respond("deleted", ephemeral=True)
 
 bot.run(CONFIG['bot']['token'])
