@@ -676,4 +676,31 @@ async def lotto():
     await execute_lotto(bot)
 
 
+@bot.slash_command(name = "gethere", description = "Get here users")
+@discord.ext.commands.check(perm)
+async def gethere(ctx, howmanytickets=None):
+    if ctx.author.bot:
+        return
+    res = getHere()
+    f = os.path.join(Collections, "here.csv" )
+    try:
+        os.remove(f)
+    except:
+        pass
+    with open(f, 'w+') as csvfile:
+        sw = csv.writer(csvfile)
+        sw.writerow(["User"])
+        for r in res:
+            sw.writerow(r)
+    file = discord.File(f)
+    await ctx.respond(file=file, ephemeral=True)
+
+@bot.slash_command(name = "delhere", description = "Get here users")
+@discord.ext.commands.check(perm)
+async def delhere(ctx, howmanytickets=None):
+    if ctx.author.bot:
+        return
+    res = delHere()
+    await ctx.respond("deleted", ephemeral=True)
+
 bot.run(CONFIG['bot']['token'])

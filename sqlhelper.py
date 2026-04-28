@@ -660,6 +660,14 @@ def resolveWager(team):
     for t in tmp:
         spendGold(t[0], t[1] * -1.8)
 
-            
+def getHere():
+    with mydb.db_cursor() as cur:
+        cur.execute("select name from checkin")
+        return cur.fetchall()
+
+def delHere():
+    with mydb.db_cursor() as cur:
+        cur.execute("delete from checkin")
+        return cur.fetchall()
 
 
