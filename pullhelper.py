@@ -6,8 +6,9 @@ from buttons import *
 from PIL import Image, ImageDraw, ImageFont
 import shutil
 from pathlib import Path
+from mydb import CONFIG
 
-TVtoCR = [36,67,95,121,145,167,187,206,224,241,257,272,286,299,311,322,332,341,349,356,362,367,372,376,380,384,387,390,393,395,397,399,400]
+TVtoCR =[36,67,95,121,145,167,187,206,224,241,257,272,286,299,311,322,332,341,349,356,362,367,372,376,380,384,387,390,393,395,397,399,400]
 
 CRList = ['1/8','1/4','1/2','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30']
 
@@ -16,7 +17,7 @@ GradeList = [45,65,80,90,96,101]
 ValueGP = [0.50,0.68,0.90,1.16,1.49,1.93,2.51,3.22,4.16,5.39,6.94,8.92,11.45,14.68,18.82,24.13,30.84,39.36,50.16,63.76,80.88,102.34,129.20,162.50,203.52,254.10,315.75,390.07,479.97,585.41,708.93,848.60,2000.00]
 ValueMulti = [1,1.2,1.5,2,3,5]
 
-Images = "/home/bramsel/pybot-dev/mooreDnD-Bot/images/"
+Images = CONFIG['paths']['images']
 
 FF_LIST = [1214255387193245726,
            587093342102224917,
@@ -29,14 +30,10 @@ FF_LIST = [1214255387193245726,
            222886192436215809,
            98962763174412288]
 
-async def getDID(user):
-    did = await bot.fetch_user(user)
-    return did
-
 async def sponsor(ctx):
     #if ctx.author.id in FF_LIST:
     #    return
-    if random.randint(1,200) == 1:
+    if random.randint(1,133) == 1:
         uid = getUserID(ctx.author.id)
         mon = random.choice(getSponsors())
         grade = random.randint(1,100)
@@ -46,7 +43,7 @@ async def sponsor(ctx):
         g += 5
         v = round(2000 * ValueMulti[g-5],3)
         collectMon(uid, mon[0], g, 1, v, datetime.now())
-        tmp = createCardImg(mon[0], 10, 1, 'Item')
+        tmp = createCardImg(mon[0], 10, 1, mon[3])
         #resp = '''
         #Congratulations is in order to {} from @everyone here for being the first adventurer to uncover the legendary Dungeon Alchemist sponsor card. As a reward for your bold fortune {}, you've’ve earned a FREE copy of Dungeon Alchemist, the 3D generative mapmaking tool that brings imagination to life!
 
@@ -165,7 +162,7 @@ def createCardImg(cid, g, h, t):
         genImg = os.path.join(Images, "gens", 'c{}hx{}y{}rot{}gsub{}x{}y{}rot{}.png'.format(cid,hx,hy,hrot,gsub,gx,gy,grot))
     else:
         genImg = os.path.join(Images, "gens", 'c{}gsub{}x{}y{}rot{}.png'.format(cid,gsub,gx,gy,grot))
-    if not os.path.isfile(genImg) or True:
+    if not os.path.isfile(genImg):
         baseImg = os.path.join(Images, 'cards', 'Cards', '{}.png'.format(cid))
         gImg = os.path.join(Images, 'cards', 'Grade', 'G{}_{}.png'.format(g,gsub))
         cImg = ''

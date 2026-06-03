@@ -23,8 +23,8 @@ with open('config.yml', 'r') as f:
 
 intents = discord.Intents.default()
 intents.members = True
-Collections = "/home/bramsel/pybot/collections/"
-Images = "/home/bramsel/pybot/images/"
+Collections = CONFIG['paths']['collections']
+Images = CONFIG['paths']['images']
 URL = " https://www.moorednd.com/satchemon"
 
 bot = discord.Bot(intents=intents)
@@ -155,7 +155,7 @@ async def promo(ctx,promo):
         return
     uid = getUserID(ctx.author.id)
     if uid is None:
-        createUser(user,ctx.author.id)
+        createUser(ctx.author.name, ctx.author.id)
         uid = getUserID(ctx.author.id)
     res = getPromos(promo.upper())
     if res:
@@ -185,7 +185,7 @@ async def promo(ctx,promo):
         response = 'Invalid Promo'
         await ctx.respond(response, ephemeral=True)
         return
-
+    
 #async def sponsor(ctx):
 #    if ctx.author.id in FF_LIST:
 #        #return
@@ -304,11 +304,11 @@ async def roles():
     for ms in mms:
         if ms not in tmpmms:
             await delRole(ms, 'Major Moneybags')
-            delMMS(cs)
+            delMMS(ms)
     for cs in css:
         if cs not in tmpcss:
             await delRole(cs, 'Corporate Shill')
-            delMMS(cs)
+            delCSS(cs)
 
 
             
@@ -326,7 +326,7 @@ def flattenRoles(cs):
 @bot.slash_command(name = "rolegold", description = "ADMIN ONLY COMMAND to stop event")
 @discord.ext.commands.check(perm)
 async def roleGold(ctx,gold, role: discord.Role):
-    ctx.guild.fetch_members(limit=None)
+    await ctx.guild.fetch_members(limit=None)
     for member in role.members:
         giveGold(str(member.id), float(gold))
     await ctx.respond('Gold Given', ephemeral=True)
@@ -455,7 +455,7 @@ async def wager(ctx, moorednd=0, specialguest=0):
 
 
 @bot.slash_command(name = "eventstatus", description = "Command to get status of event")
-async def event(ctx, value=None):
+async def eventstatus(ctx, value=None):
     await doEventStatus(ctx, value)
 
 @bot.slash_command(name = "shop", description = "Buy Cards from shop")
@@ -477,6 +477,11 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
             style = PresetStyle.thin_compact
         )
         head = "Welcome to Jesster's Underground Trading Hub, undercutting the greedy shopkeeper if you insist on patronizing the man his wares can be found at - {}\n".format(URL + '/user/0')
+        head = '''Ahh, you’re looking to buy some cards, eh? Well, welcome to **Jesster’s Underground Trading Hub**, undercutting the shopkeeper at the Enchanted Sleeve by selling cards for *near market value*.
+
+Don’t see what you’re looking for? Well, you’ll likely find it at the Enchanted Sleeve, but the greedy shopkeeper will **make you pay a pretty penny for it**. Who knows though – *maybe you can haggle a good price out of him*. Doubt it.
+
+        [Visit the Enchanted Sleeve](https://moorednd.com/satchemon/user/0)'''
         out = head + f"```\n{output}\n```"
         await ctx.respond(out, ephemeral=True)
         return
@@ -639,24 +644,6 @@ async def on_command_error(ctx, error):
         await ctx.respond('Event timer cooldown {} second(s)'.format(int(error.retry_after % 60)), ephemeral=True)
         return
     raise error
-
-#@bot.slash_command(name = "test", description = "List all commands")
-#async def test(ctx,c=1):
-#    #bnum = random.randint(1,25)
-#    #tmpview = discord.ui.View(timeout=60)
-#    #for i in range(0,5):
-#    #    for j in range(0,5):
-#    #        if (i*5 + j) == bnum:
-#    #            t = g_button(c)
-#    #            t.label = "O"
-#    #        else:
-#    #            t = x_button()
-#    #            t.label = "X"
-#    #        t.row = i
-#    #        tmpview.add_item(t)
-#    tmp = dview()
-#    tmp.set()
-#    await ctx.respond(view=tmp, ephemeral=True)
 
 @bot.slash_command(name = "help", description = "List all commands")
 async def help(ctx):

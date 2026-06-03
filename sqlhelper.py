@@ -79,7 +79,7 @@ def getUserID(user):
 def getSponsors():
     with mydb.db_cursor() as cur:
         try:
-            cur.execute("SELECT rwid,name,exp from mons where exp = 'SPONS'")
+            cur.execute("SELECT rwid,name,exp,class from mons where exp = 'SPONS'")
             return cur.fetchall()
         except:
             return None
@@ -662,7 +662,7 @@ def resolveWager(team):
 
 def getHere():
     with mydb.db_cursor() as cur:
-        cur.execute("select name from checkin")
+        cur.execute("select name, date from checkin")
         return cur.fetchall()
 
 def delHere():

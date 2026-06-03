@@ -26,6 +26,11 @@ async def gv(ctx, value, uid, member):
         response += ' and it was a HOLOGRAPHIC!!!!'
     response += ' it has a value of {}'.format(v)
     await ctx.followup.send(response,file=combine)
+    cur = 0
+    try:
+        cur = float(getEvColValue(ctx.author.id)[0])
+    except:
+        pass
     tmp = cur + v
     await ctx.followup.send('You have a event collection value of {} which is {} under the goal value but don\'t go over'.format(tmp, getOption('pir') - tmp), ephemeral=True)
 
@@ -135,7 +140,7 @@ async def doEvent(ctx, value=None):
         await raid(ctx, uid, member)
     elif e == 'attack':
         if value:
-	        await attack(ctx, value, uid, member)
+            await attack(ctx, value, uid, member)
         else:
             await ctx.respond('Need to cards', ephemeral=True)
     else:

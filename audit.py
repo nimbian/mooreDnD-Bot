@@ -1,6 +1,7 @@
 from sqlhelper import *
+from mydb import CONFIG
 import discord
-Images = "/home/bramsel/pybot/images/"
+Images = CONFIG['paths']['images']
 
 async def auditPost(bot, resp, t):
     if t == 'trade':

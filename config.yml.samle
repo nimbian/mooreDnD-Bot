@@ -6,4 +6,6 @@ psql:
   user: "psqluser"
   dbname: "psqldb"
   password: "psqlpass"
-
+paths:
+  images: "/home/bramsel/pybot/images/"
+  collections: "/home/bramsel/pybot/collections/"

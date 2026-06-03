@@ -4,11 +4,12 @@ from consts import *
 from datetime import datetime, timezone
 from pullhelper import *
 from audit import *
-from table2ascii import table2ascii as t2a, PresetStyle 
+from table2ascii import table2ascii as t2a, PresetStyle
 import random
 import yaml
 import os
-Images = "/home/bramsel/pybot/images/"
+from mydb import CONFIG
+Images = CONFIG['paths']['images']
 
 with open('godspeak.yml', 'r') as f:
     GODS = yaml.safe_load(f)
@@ -33,7 +34,7 @@ async def buyPulls(sf, cl):
         await sf.ctx.respond(response, file=combine)
     await sponsor(sf.ctx)
     spendGold(sf.ctx.author.id, sf.cost)
-    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 async def useToken(sf, cl):
@@ -56,7 +57,7 @@ async def useToken(sf, cl):
 
         await sf.ctx.respond(response, file=combine)
     await sponsor(sf.ctx)
-    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
 
 class a_button(discord.ui.Button):
@@ -128,7 +129,7 @@ class c_button(discord.ui.Button):
         wmoney = self.wmoney
         gp = float(getGold(self.uid))
         if mmoney > gp:
-            await ctx.respond("You do not have that much gold", ephemeral=True)
+            await interaction.response.send_message("You do not have that much gold", ephemeral=True)
             return
         for c in mcards:
             res = yourCard(c, uid)
@@ -549,7 +550,7 @@ class x_button(discord.ui.Button):
 async def giveawayEntries(sf, es, un, plat, roll):
     uid = getUserID(sf.ctx.author.id)
     if not uid:
-        createUser(sf.ctx.author.id)
+        createUser(sf.ctx.author.name, sf.ctx.author.id)
         uid = getUserID(sf.ctx.author.id)
     if plat == 'yt':
         if hasYT(uid):
@@ -720,7 +721,7 @@ class buy_button(discord.ui.Button):
         for c in card:
             res = yourCard(c, 0)
             if res is None:
-                await ctx.respond("This is not a shop card(s)", ephemeral=True)
+                await interaction.response.send_message("This is not a shop card(s)", ephemeral=True)
                 return
         cs = list(card)
         tv = 0
@@ -731,7 +732,7 @@ class buy_button(discord.ui.Button):
             tv += t[3]
         tv = round(float(tv) * 1.5,3)
         if gp < tv:
-            await ctx.respond('You do not have enough GP', ephemeral=True)
+            await interaction.response.send_message('You do not have enough GP', ephemeral=True)
             return
         spendGold(self.did, tv)
         buyCards(self.did, self.cids)
@@ -756,7 +757,7 @@ class haggle_buy_button(discord.ui.Button):
         for c in card:
             res = yourCard(c, 0)
             if res is None:
-                await ctx.respond("This is not a shop card(s)", ephemeral=True)
+                await interaction.response.send_message("This is not a shop card(s)", ephemeral=True)
                 return
         cs = list(card)
         tmp = []
@@ -767,7 +768,7 @@ class haggle_buy_button(discord.ui.Button):
             tv += t[3]
         tv = round(float(tv),3)
         if gp < round(float(tv) * 1.7,3):
-            await ctx.respond('You do not have enough GP', ephemeral=True)
+            await interaction.response.send_message('You do not have enough GP', ephemeral=True)
             return
 
         d20 = random.randint(1, 20)
@@ -823,7 +824,7 @@ class lotto_button(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         generate_lotto(self.uid, self.amount)
         spendGold(self.uid, float(self.amount * 25))
-        await interaction.respond('{} ticket(s) given'.format(self.amount), ephemeral=True)
+        await interaction.response.send_message('{} ticket(s) given'.format(self.amount), ephemeral=True)
 
 
 class wager_button(discord.ui.Button):
@@ -838,5 +839,5 @@ class wager_button(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         addWager(self.uid, self.team, self.wager)
-        await interaction.respond('Wager placed for {} GP'.format(self.wager), ephemeral=True)
+        await interaction.response.send_message('Wager placed for {} GP'.format(self.wager), ephemeral=True)
 
