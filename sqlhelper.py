@@ -147,6 +147,11 @@ def getMonsFromCR(CR, t):
         cur.execute("SELECT rwid,name,exp from mons where CR = %s and exp != 'Promo' and exp != 'SPONS' and class = %s",(CR,t))
         return cur.fetchall()
 
+def getMonByID(cid):
+    with mydb.db_cursor() as cur:
+        cur.execute("SELECT rwid,name,exp,class from mons where rwid = %s",(cid,))
+        return cur.fetchone()
+
 def getEvColValue(did):
     with mydb.db_cursor() as cur:
         cur.execute("SELECT sum(value) from eventCollections inner join users on eventCollections.uid = users.rwid where did = %s",(did,))

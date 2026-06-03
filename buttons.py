@@ -30,8 +30,13 @@ async def buyPulls(sf, cl):
         if holo:
             response += ' and it was a HOLOGRAPHIC!!!!'
         response += ' it has a value of {}'.format(v)
-
         await sf.ctx.respond(response, file=combine)
+        if random.randint(1, 1) == 1:
+            mon_lucky = getMonByID(1083)
+            v_lucky = round(5000 * ValueMulti[5], 3)
+            collectMon(uid, 1083, 10, 0, v_lucky, datetime.now())
+            tmp_lucky = createCardImg(mon_lucky[0], 10, 1, mon_lucky[3])
+            await sf.ctx.respond('{} pulled a LEGENDARY card worth {} GP!'.format(member, v_lucky), file=discord.File(tmp_lucky))
     await sponsor(sf.ctx)
     spendGold(sf.ctx.author.id, sf.cost)
     await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
@@ -54,8 +59,13 @@ async def useToken(sf, cl):
         if holo:
             response += ' and it was a HOLOGRAPHIC!!!!'
         response += ' it has a value of {}'.format(v)
-
         await sf.ctx.respond(response, file=combine)
+        if random.randint(1, 1033) == 1:
+            mon_lucky = getMonByID(1083)
+            v_lucky = round(2000 * ValueMulti[5], 3)
+            collectMon(uid, 1083, 10, 1, v_lucky, datetime.now())
+            tmp_lucky = createCardImg(mon_lucky[0], 10, 1, mon_lucky[3])
+            await sf.ctx.respond('{} pulled a LEGENDARY card worth {} GP!'.format(member, v_lucky), file=discord.File(tmp_lucky))
     await sponsor(sf.ctx)
     await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
     return
