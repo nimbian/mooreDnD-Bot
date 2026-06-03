@@ -23,9 +23,10 @@ async def buyPulls(sf, cl):
         return
     cr_list = []
     for p in range(sf.pulls):
-        if random.randint(1, 1) == 1:
+        if random.randint(1, 1033) == 1:
             mon_lucky = getMonByID(1083)
-            v_lucky = round(5000 * ValueMulti[5], 3)
+            mon, g, holo, v, combine, CR = puller(random.choice(cl))
+            v_lucky = round(5000 * ValueMulti[g-5], 3)
             collectMon(uid, 1083, 10, 0, v_lucky, datetime.now())
             tmp_lucky = createCardImg(mon_lucky[0], 10, 1, mon_lucky[3])
             await sf.ctx.respond('{} pulled a LEGENDARY card worth {} GP!'.format(member, v_lucky), file=discord.File(tmp_lucky))
@@ -41,7 +42,7 @@ async def buyPulls(sf, cl):
 
     await sponsor(sf.ctx)
     spendGold(sf.ctx.author.id, sf.cost)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)])))
     return
 
 async def useToken(sf, cl):
@@ -56,7 +57,8 @@ async def useToken(sf, cl):
     for p in range(sf.pulls):
         if random.randint(1, 1033) == 1:
             mon_lucky = getMonByID(1083)
-            v_lucky = round(2000 * ValueMulti[5], 3)
+            mon, g, holo, v, combine, CR = puller(random.choice(cl))
+            v_lucky = round(5000 * ValueMulti[g-5], 3)
             collectMon(uid, 1083, 10, 1, v_lucky, datetime.now())
             tmp_lucky = createCardImg(mon_lucky[0], 10, 1, mon_lucky[3])
             await sf.ctx.respond('{} pulled a LEGENDARY card worth {} GP!'.format(member, v_lucky), file=discord.File(tmp_lucky))
@@ -71,7 +73,7 @@ async def useToken(sf, cl):
             await sf.ctx.respond(response, file=combine)
 
     await sponsor(sf.ctx)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[max(cr_list)]))) 
+    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)]))) 
     return
 
 class a_button(discord.ui.Button):
