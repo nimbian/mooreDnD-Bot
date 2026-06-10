@@ -573,7 +573,7 @@ def buyCards(did, cids):
             
 def getLottoEntries(did):
     with mydb.db_cursor() as cur:
-        cur.execute("SELECT users.name, lotto.ticket FROM lotto JOIN users ON lotto.did = users.did WHERE lotto.did = %s", (did,))
+        cur.execute("SELECT lotto.ticket FROM lotto WHERE uid = %s", (did,))
         return cur.fetchall()
 
 def generate_lotto(did, amount):

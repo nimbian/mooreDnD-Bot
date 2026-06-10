@@ -700,9 +700,9 @@ async def getlotto(ctx):
         pass
     with open(f, 'w+', newline='') as csvfile:
         sw = csv.writer(csvfile)
-        sw.writerow(["User", "Ticket"])
+        sw.writerow(["Ticket"])
         for r in res:
-            sw.writerow([r[0], r[1].replace(',', '')])
+            sw.writerow([r[0].replace(',', '-')])
     file = discord.File(f)
     await ctx.respond(file=file, ephemeral=True)
 
