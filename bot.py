@@ -685,6 +685,27 @@ async def gethere(ctx):
     file = discord.File(f)
     await ctx.respond(file=file, ephemeral=True)
 
+@bot.slash_command(name = "getlotto", description = "See your current lotto tickets as a CSV")
+async def getlotto(ctx):
+    if ctx.author.bot:
+        return
+    res = getLottoEntries(ctx.author.id)
+    if not res:
+        await ctx.respond("You have no lotto tickets", ephemeral=True)
+        return
+    f = os.path.join(Collections, "lotto_{}.csv".format(ctx.author.id))
+    try:
+        os.remove(f)
+    except:
+        pass
+    with open(f, 'w+', newline='') as csvfile:
+        sw = csv.writer(csvfile)
+        sw.writerow(["User", "Ticket"])
+        for r in res:
+            sw.writerow([r[0], r[1].replace(',', '')])
+    file = discord.File(f)
+    await ctx.respond(file=file, ephemeral=True)
+
 @bot.slash_command(name = "delhere", description = "Get here users")
 @discord.ext.commands.check(perm)
 async def delhere(ctx):

@@ -571,6 +571,11 @@ def buyCards(did, cids):
             cur.execute("update collections set uid = (SELECT rwid from users where did = %s) where rwid = %s", (did, c))
     return
             
+def getLottoEntries(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("SELECT users.name, lotto.ticket FROM lotto JOIN users ON lotto.did = users.did WHERE lotto.did = %s", (did,))
+        return cur.fetchall()
+
 def generate_lotto(did, amount):
     with mydb.db_cursor() as cur:
         tmp = random.sample(range(0,10000), amount)
