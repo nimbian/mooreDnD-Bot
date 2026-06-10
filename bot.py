@@ -482,7 +482,10 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
 Don’t see what you’re looking for? Well, you’ll likely find it at the Enchanted Sleeve, but the greedy shopkeeper will **make you pay a pretty penny for it**. Who knows though – *maybe you can haggle a good price out of him*. Doubt it.
 
         [Visit the Enchanted Sleeve](https://moorednd.com/satchemon/user/0)'''
-        out = head + f"```\n{output}\n```"
+        await ctx.respond(head, ephemeral=True)
+        #out = head + f"```\n{output}\n```"
+        out = f"```\n{output}\n```"
+
         await ctx.respond(out, ephemeral=True)
         return
     elif shopclearanceid:

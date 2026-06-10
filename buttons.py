@@ -42,7 +42,7 @@ async def buyPulls(sf, cl):
 
     await sponsor(sf.ctx)
     spendGold(sf.ctx.author.id, sf.cost)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)])))
+    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)])))
     return
 
 async def useToken(sf, cl):
@@ -73,7 +73,7 @@ async def useToken(sf, cl):
             await sf.ctx.respond(response, file=combine)
 
     await sponsor(sf.ctx)
-    await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)]))) 
+    #await sf.ctx.respond('{} "{}"'.format(random.choice(GODS['voices']), random.choice(GODS[(max(cr_list) if cr_list else 30)]))) 
     return
 
 class a_button(discord.ui.Button):
