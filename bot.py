@@ -468,25 +468,38 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
         return
     if not shopclearanceid and not shopcollectioncards:
         res = shopCards()
-        tmp = []
-        for r in res:
-            tmp += [[r[0], r[1], r[2], r[3], r[4], 'Yes' if r[5] else 'No', r[6]]]
-        output = t2a(
-                header=["ShopID", "CR", "Card", "Expansion", "Grade", "Holo", "Sell Price"],
-            body = tmp,
-            style = PresetStyle.thin_compact
-        )
-        head = "Welcome to Jesster's Underground Trading Hub, undercutting the greedy shopkeeper if you insist on patronizing the man his wares can be found at - {}\n".format(URL + '/user/0')
         head = '''Ahh, you’re looking to buy some cards, eh? Well, welcome to **Jesster’s Underground Trading Hub**, undercutting the shopkeeper at the Enchanted Sleeve by selling cards for *near market value*.
 
 Don’t see what you’re looking for? Well, you’ll likely find it at the Enchanted Sleeve, but the greedy shopkeeper will **make you pay a pretty penny for it**. Who knows though – *maybe you can haggle a good price out of him*. Doubt it.
 
         [Visit the Enchanted Sleeve](https://moorednd.com/satchemon/user/0)'''
         await ctx.respond(head, ephemeral=True)
-        #out = head + f"```\n{output}\n```"
-        out = f"```\n{output}\n```"
 
-        await ctx.respond(out, ephemeral=True)
+        # Mobile-friendly listing: a compact 2-line markdown entry per card that
+        # reflows on narrow screens, instead of a wide fixed-width ASCII table.
+        if not res:
+            await ctx.respond("The shop is empty right now — check back later.", ephemeral=True)
+            return
+
+        entries = []
+        for r in res:
+            shop_id, cr, name, expansion, grade, holo, price = r[0], r[1], r[2], r[3], r[4], r[5], r[6]
+            details = [f"CR {cr}", str(expansion), f"Grade {grade}"]
+            if holo:
+                details.append("✨ Holo")
+            details.append(f"💰 {price} gp")
+            entries.append(f"`#{shop_id}` **{name}**\n{' · '.join(details)}")
+
+        # Discord caps a message at 2000 chars, so send in chunks if needed.
+        footer = "\nBuy with `/shop shopclearanceid:<#>`"
+        chunk = ""
+        for entry in entries:
+            piece = entry + "\n\n"
+            if len(chunk) + len(piece) + len(footer) > 1900:
+                await ctx.respond(chunk.rstrip(), ephemeral=True)
+                chunk = ""
+            chunk += piece
+        await ctx.respond(chunk.rstrip() + footer, ephemeral=True)
         return
     elif shopclearanceid:
         card = getShopCard(shopclearanceid)
