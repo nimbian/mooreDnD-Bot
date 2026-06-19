@@ -25,7 +25,7 @@ intents = discord.Intents.default()
 intents.members = True
 Collections = CONFIG['paths']['collections']
 Images = CONFIG['paths']['images']
-URL = " https://www.moorednd.com/satchemon"
+URL = "https://www.moorednd.com/satchemon"
 
 bot = discord.Bot(intents=intents)
 
@@ -36,6 +36,39 @@ FF_LIST = [1214255387193245726,
            587093342102224917,
            693204053546500117,
            257535802223886339]
+
+
+def card_entry(name, *, id=None, cr=None, expansion=None, grade=None, holo=False, value=None):
+    """Format one card as a compact, mobile-friendly 2-line markdown entry.
+
+    Reflows on narrow screens, unlike a fixed-width ASCII table inside a code block.
+    """
+    parts = []
+    if cr is not None:
+        parts.append(f"CR {cr}")
+    if expansion:
+        parts.append(str(expansion))
+    if grade is not None:
+        parts.append(f"Grade {grade}")
+    if holo:
+        parts.append("✨ Holo")
+    if value is not None:
+        parts.append(f"💰 {value} gp")
+    header = f"`#{id}` **{name}**" if id is not None else f"**{name}**"
+    return header + ("\n" + " · ".join(parts) if parts else "")
+
+
+async def respond_entries(ctx, entries, *, head=None, footer=""):
+    """Send card entries as ephemeral messages, chunked under Discord's 2000-char cap."""
+    chunk = (head + "\n\n") if head else ""
+    for entry in entries:
+        piece = entry + "\n\n"
+        if chunk and len(chunk) + len(piece) + len(footer) > 1900:
+            await ctx.respond(chunk.rstrip(), ephemeral=True)
+            chunk = ""
+        chunk += piece
+    await ctx.respond(chunk.rstrip() + footer, ephemeral=True)
+
 
 @bot.event
 async def on_ready():
@@ -55,7 +88,7 @@ async def gold(ctx):
 async def collection(ctx, user=None):
     if ctx.author.bot:
         return
-    await ctx.respond('Bot Thinking:', ephemeral=True)
+    await ctx.defer(ephemeral=True)
     head = 'See all collections at: {}/\n'.format(URL)
     if user:
         res = getCollection(user[2:-1])
@@ -67,16 +100,14 @@ async def collection(ctx, user=None):
     else:
         res = getCollection(ctx.author.id)
         head += 'Your collection:  {}/satchemon/user/{} '.format(URL,ctx.author.id)
-    tmp = []
-    for r in res:
-        tmp += [[r[0], r[1], r[2], r[3], r[4], 'Yes' if r[5] else 'No', r[7]]]
-    output = t2a(
-        header=["CardID", "CR", "Card", "Expansion", "Grade", "Holo", "Value"],
-        body = tmp,
-        style = PresetStyle.thin_compact
-    )
-    out = head + f"```\n{output}\n```"
-    await ctx.respond(out, ephemeral=True)
+    if not res:
+        await ctx.respond(head + '\nNo cards yet.', ephemeral=True)
+        return
+    entries = [
+        card_entry(r[2], id=r[0], cr=r[1], expansion=r[3], grade=r[4], holo=r[5], value=r[7])
+        for r in res
+    ]
+    await respond_entries(ctx, entries, head=head)
 
 @bot.slash_command(name = "sendmsg", description = "ADMIN COMMAND to give send msg")
 @discord.ext.commands.check(perm)
@@ -480,26 +511,11 @@ Don’t see what you’re looking for? Well, you’ll likely find it at the Ench
         if not res:
             await ctx.respond("The shop is empty right now — check back later.", ephemeral=True)
             return
-
-        entries = []
-        for r in res:
-            shop_id, cr, name, expansion, grade, holo, price = r[0], r[1], r[2], r[3], r[4], r[5], r[6]
-            details = [f"CR {cr}", str(expansion), f"Grade {grade}"]
-            if holo:
-                details.append("✨ Holo")
-            details.append(f"💰 {price} gp")
-            entries.append(f"`#{shop_id}` **{name}**\n{' · '.join(details)}")
-
-        # Discord caps a message at 2000 chars, so send in chunks if needed.
-        footer = "\nBuy with `/shop shopclearanceid:<#>`"
-        chunk = ""
-        for entry in entries:
-            piece = entry + "\n\n"
-            if len(chunk) + len(piece) + len(footer) > 1900:
-                await ctx.respond(chunk.rstrip(), ephemeral=True)
-                chunk = ""
-            chunk += piece
-        await ctx.respond(chunk.rstrip() + footer, ephemeral=True)
+        entries = [
+            card_entry(r[2], id=r[0], cr=r[1], expansion=r[3], grade=r[4], holo=r[5], value=r[6])
+            for r in res
+        ]
+        await respond_entries(ctx, entries, footer="\n\nBuy with `/shop shopclearanceid:<#>`")
         return
     elif shopclearanceid:
         card = getShopCard(shopclearanceid)
@@ -510,16 +526,11 @@ Don’t see what you’re looking for? Well, you’ll likely find it at the Ench
         if gp < float(card[6]):
             await ctx.respond('You do not have enough GP', ephemeral=True)
             return
-        card = card[0:7]
-        output = t2a(
-            header=["ShopID", "CR", "Card", "Expansion", "Grade", "Holo", "Value"],
-            body = [card],
-            style = PresetStyle.thin_compact
-        )
-        out = f"```\n{output}\n```"
+        entry = card_entry(card[2], id=card[0], cr=card[1], expansion=card[3],
+                           grade=card[4], holo=card[5], value=card[6])
         tmpview = discord.ui.View(timeout=60)
         tmpview.add_item(bs_button(ctx.author.id, shopclearanceid, bot))
-        resp = f"Purchase card(s)?\n```\n{output}\n```"
+        resp = f"{entry}\n\nPurchase card(s)?"
         await ctx.respond(resp, view=tmpview, ephemeral=True)
         return
     elif shopcollectioncards:
@@ -533,17 +544,13 @@ Don’t see what you’re looking for? Well, you’ll likely find it at the Ench
                 await ctx.respond("This is not a shop card(s)", ephemeral=True)
                 return
         cs = list(card)
-        tmp = []
+        entries = []
         tv = 0
         for c in cs:
             t = getCard(c)
-            tmp.append([t[0],t[1],t[2], t[3]])
+            entries.append(card_entry(t[0], id=c, grade=t[1], holo=t[2], value=t[3]))
             tv += t[3]
-        output = t2a(
-                header=["Card", "Grade", "Holo", "Value"],
-                body = tmp,
-                style = PresetStyle.thin_compact
-                )
+        output = "\n\n".join(entries)
         tv = round(float(tv),3)
         b_b = buy_button(ctx.author.id, cs, bot)
         h_b = haggle_buy_button(ctx.author.id, cs, bot)
@@ -556,7 +563,7 @@ Don’t see what you’re looking for? Well, you’ll likely find it at the Ench
         tmpview.add_item(b_b)
         tmpview.add_item(h_b)
         tmpv =  round(float(tv) * 1.5,3)
-        resp = f"\n```\n{output}\n```Purchase card(s) for a 50% markup of {tmpv} GP?\n\nOR; attempt to haggle for a lower price, but run the risk of an increase instead"
+        resp = f"{output}\n\nPurchase card(s) for a 50% markup of {tmpv} GP?\n\nOR; attempt to haggle for a lower price, but run the risk of an increase instead"
         await ctx.respond(resp, view=tmpview, ephemeral=True)
 
 
@@ -600,19 +607,15 @@ async def sell(ctx, cards):
     tmpview.add_item(s_button(ctx.author.id, card, bot))
     tmpview.add_item(h_s_button(ctx.author.id, card, bot))
     cs = list(card)
-    tmp = []
+    entries = []
     tv = 0
     for c in cs:
         t = getCard(c)
-        tmp.append([t[0],t[1],t[2], t[3]])
+        entries.append(card_entry(t[0], id=c, grade=t[1], holo=t[2], value=t[3]))
         tv += round(float(t[3]) * .7,3)
 
-    output = t2a(
-        header=["Card", "Grade", "Holo", "Value"],
-        body = tmp,
-        style = PresetStyle.thin_compact
-    )
-    resp = f"```\n{output}\n```Sell card(s) for 70% of the total value at {tv} GP?:\n\nOR; attempt to haggle for a higher price, but run the risk of a decrease instead"
+    output = "\n\n".join(entries)
+    resp = f"{output}\n\nSell card(s) for 70% of the total value at {tv} GP?:\n\nOR; attempt to haggle for a higher price, but run the risk of a decrease instead"
     await ctx.respond(resp, view=tmpview, ephemeral=True)
 
 @bot.slash_command(name = "lotto", description = "Buy Lottery Tickets")
