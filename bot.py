@@ -75,6 +75,7 @@ async def on_ready():
     leaderboard.start()
     roles.start()
     lotto.start()
+    queue.start()
     print(f"{bot.user} is ready and online!")
 
 @bot.slash_command(name = "gold", description = "See how much gold you have")
@@ -680,6 +681,24 @@ async def help(ctx):
 @tasks.loop(minutes=1)
 async def lotto():
     await execute_lotto(bot)
+
+
+@tasks.loop(minutes=5)
+async def queue():
+    for did, rwid, value in getQueue():
+        t = getCard(rwid)
+        if t is None:
+            delFromQueue(did, rwid, value)
+            continue
+        out = t2a(
+                header=['Card','Grade','Holo','Value'],
+                body = [[t[0], t[1], t[2], value]],
+                style = PresetStyle.thin_compact
+        )
+        user = getUserName(did)[0]
+        resp = f"{user} sold these cards ```\n{out}\n```"
+        await auditPost(bot, resp, 'sell')
+        delFromQueue(did, rwid, value)
 
 
 @bot.slash_command(name = "gethere", description = "Get here users")
