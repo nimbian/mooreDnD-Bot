@@ -670,6 +670,12 @@ def resolveWager(team):
     for t in tmp:
         spendGold(t[0], t[1] * -1.8)
 
+def getUserRole(did):
+    with mydb.db_cursor() as cur:
+        cur.execute("select sets.role from users join sets on sets.rwid = users.roleid where users.did = %s", (did,))
+        res = cur.fetchone()
+        return res[0] if res else None
+
 def getQueue():
     with mydb.db_cursor() as cur:
         cur.execute("select did, rwid, value from queue")
