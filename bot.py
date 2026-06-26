@@ -25,7 +25,7 @@ intents = discord.Intents.default()
 intents.members = True
 Collections = CONFIG['paths']['collections']
 Images = CONFIG['paths']['images']
-URL = "https://www.moorednd.com/satchemon"
+URL = "https://www.moorednd.com/"
 
 bot = discord.Bot(intents=intents)
 
@@ -94,13 +94,13 @@ async def collection(ctx, user=None):
     if user:
         res = getCollection(user[2:-1])
         if res:
-            head += '{}\'s collection: {}/{} '.format(URL,getUserName(user[2:-1])[0], user[2:-1])
+            head += '{}\'s collection: {}/user/{} '.format(getUserName(user[2:-1])[0], URL, user[2:-1])
         else:
             await ctx.respond('This user has no collection yet', ephemeral=True)
             return
     else:
         res = getCollection(ctx.author.id)
-        head += 'Your collection:  {}/satchemon/user/{} '.format(URL,ctx.author.id)
+        head += 'Your collection:  {}/user/{} '.format(URL,ctx.author.id)
     if not res:
         await ctx.respond(head + '\nNo cards yet.', ephemeral=True)
         return
@@ -504,7 +504,7 @@ async def shop(ctx, shopclearanceid=None, shopcollectioncards=None):
 
 Don’t see what you’re looking for? Well, you’ll likely find it at the Enchanted Sleeve, but the greedy shopkeeper will **make you pay a pretty penny for it**. Who knows though – *maybe you can haggle a good price out of him*. Doubt it.
 
-        [Visit the Enchanted Sleeve](https://moorednd.com/satchemon/user/0)'''
+        [Visit the Enchanted Sleeve](https://www.moorednd.com/shop)'''
         await ctx.respond(head, ephemeral=True)
 
         # Mobile-friendly listing: a compact 2-line markdown entry per card that
