@@ -75,7 +75,7 @@ async def on_ready():
     leaderboard.start()
     roles.start()
     lotto.start()
-    queue.start()
+    #queue.start()
     print(f"{bot.user} is ready and online!")
 
 @bot.slash_command(name = "gold", description = "See how much gold you have")

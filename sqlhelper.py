@@ -678,12 +678,12 @@ def getUserRole(did):
 
 def getQueue():
     with mydb.db_cursor() as cur:
-        cur.execute("select did, rwid, value from queue")
+        cur.execute("select did, id, value from queue")
         return cur.fetchall()
 
 def delFromQueue(did, rwid, value):
     with mydb.db_cursor() as cur:
-        cur.execute("delete from queue where did = %s and rwid = %s and value = %s", (did, rwid, value))
+        cur.execute("delete from queue where did = %s and id = %s and value = %s", (did, rwid, value))
     return
 
 def getHere():

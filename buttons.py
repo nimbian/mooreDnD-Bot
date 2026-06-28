@@ -20,7 +20,7 @@ async def buyPulls(sf, cl):
     member = sf.ctx.author.display_name
     role = getUserRole(sf.did)
     if role:
-        member = '{} the {}'.format(member, role)
+        member = '{}, {}'.format(member, role)
     if sf.cost > gp:
         await sf.ctx.respond('You do not have enough gold', ephemeral=True)
         return
@@ -53,7 +53,7 @@ async def useToken(sf, cl):
     member = sf.ctx.author.display_name
     role = getUserRole(sf.did)
     if role:
-        member = '{} the {}'.format(member, role)
+        member = '{}, {}'.format(member, role)
     ps = getPulls(sf.did)
     if ps <= 0:
         await sf.ctx.respond('No more pulls', ephemeral=True)
